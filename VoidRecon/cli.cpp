@@ -376,7 +376,7 @@ void CommandHandler::cmdGetRSSI() {
 }
 
 void CommandHandler::cmdAnalyze() {
-    Serial.println("Starting frequency scan...");
+    Serial.println("Waiting for signals [SEND ANY KEY TO STOP]...");
     analyzer.scan();
 }
 
@@ -577,7 +577,7 @@ void CommandHandler::cmdRecRaw(const char* args) {
     rf.setRxMode();
     pinMode(2, INPUT);
     
-    Serial.println("Waiting for signal to start recording[PRESS ANY KEY TO STOP]...");
+    Serial.println("Waiting for signal to start recording [SEND ANY KEY TO STOP]...");
     delayMicroseconds(1000);
     while (digitalRead(2) == LOW) {
         if (Serial.available()) {
@@ -652,7 +652,7 @@ void CommandHandler::cmdRecSig() {
     ELECHOUSE_cc1101.SetRx();
     rcSwitch.enableReceive();
     
-    Serial.println("Waiting for radio signal [PRESS ANY KEY TO STOP]...");
+    Serial.println("Waiting for radio signal [SEND ANY KEY TO STOP]...");
     
     while (!Serial.available()) {
         if (rcSwitch.available()) {
