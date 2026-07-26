@@ -88,7 +88,7 @@ void FrequencyAnalyzer::fineScan(FrequencyRSSI& result) {
 }
 
 void FrequencyAnalyzer::scan() {
-    while (true) {
+    while (!Serial.available()) {
         FrequencyRSSI result = {0, -100, 0, -100};
         
         coarseScan(result);
