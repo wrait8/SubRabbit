@@ -1,6 +1,6 @@
 // recorder.cpp
 #include "recorder.h"
-#include <ELECHOUSE_CC1101_SRC_DRV.h>
+#include <SmartRC_CC1101.h>
 
 Recorder::Recorder() : recording(false), bufferPos(0), frameCount(0) {
     memset(recordingBuffer, 0, RECORDING_BUFFER_SIZE);
