@@ -1,4 +1,4 @@
-# VoidRecon
+# SubRabbit
  <img width="2281" height="501" alt="VoidRecon" src="https://github.com/user-attachments/assets/67ae50fb-6ab7-40da-aec2-cf8b88e918f8" />
  <p align="center">
   <b>A suite of RF offensive and defensive tools for the ESP32(Atmega32u4 in future)</b>
@@ -34,5 +34,5 @@
 -  **`.sub` file import/export** - Flipper Zero compatibility
 
 ## Getting Started
-Download the [latest release](https://github.com/wrait8/VoidRecon/releases/latest) of the firmware.
-Check out the project [wiki](https://github.com/wrait8/VoidRecon/wiki) for a full overview of the VoidRecon.
+Download the [latest release](https://github.com/wrait8/SubRabbit/releases/latest) of the firmware.
+Check out the project [wiki](https://github.com/wrait8/SubRabbit/wiki) for a full overview of the VoidRecon.
