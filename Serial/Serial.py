@@ -40,7 +40,7 @@ DEFAULT_FQBN = "arduino:avr:leonardo"
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Repo that firmware releases are pulled from for the [U]pgrade option.
-GITHUB_REPO = "wrait8/VoidRecon"
+GITHUB_REPO = "wrait8/SubRabbit"
 
 # === LOGGING / STATE ===
 SESSION_ID = None
@@ -81,12 +81,21 @@ atexit.register(readline.write_history_file, histfile)
 # === BANNER ===
 def ascii_banner():
     banner = r"""
-____   ____    .__    ._____________
-\   \ /   /___ |__| __| _/\______   \ ____   ____  ____   ____
- \   Y   /  _ \|  |/ __ |  |       _// __ \_/ ___\/  _ \ /    \
-  \     (  <_> )  / /_/ |  |    |   \  ___/\  \__(  <_> )   |  \
-   \___/ \____/|__\____ |  |____|_  /\___  >\___  >____/|___|  /
-                       \/         \/     \/     \/           \/"""
+                        (`.         ,-,
+                        ` `.    ,;' /
+                         `.  ,'/ .'
+                          `. X /.'
+                .-;--''--.._` ` (
+              .'            /   `
+             ,           ` '   Q '
+             ,         ,   `._    \
+          ,.|         '     `-.;_'
+          :  . `  ;    `  ` --,.._;
+           ' `    ,   )   .'
+              `._ ,  '   /_
+                 ; ,''-,;' ``-
+                  ``-..__``--`
+"""
     print(banner)
     print()
 
@@ -207,7 +216,7 @@ def download_and_install_arduino_cli():
     api_url = "https://api.github.com/repos/arduino/arduino-cli/releases/latest"
     req = urllib.request.Request(
         api_url,
-        headers={"Accept": "application/vnd.github+json", "User-Agent": "VoidRecon-Toolkit"}
+        headers={"Accept": "application/vnd.github+json", "User-Agent": "SubRabbit-Toolkit"}
     )
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
@@ -367,7 +376,7 @@ def get_latest_release_bin():
     api_url = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
     req = urllib.request.Request(
         api_url,
-        headers={"Accept": "application/vnd.github+json", "User-Agent": "VoidRecon-Toolkit"}
+        headers={"Accept": "application/vnd.github+json", "User-Agent": "SubRabbit-Toolkit"}
     )
     with urllib.request.urlopen(req, timeout=15) as resp:
         data = json.loads(resp.read().decode())
@@ -419,7 +428,7 @@ def upgrade_firmware(port):
 
     import urllib.request
     import tempfile
-    dest_dir = tempfile.mkdtemp(prefix="voidrecon_fw_")
+    dest_dir = tempfile.mkdtemp(prefix="SubRabbit_fw_")
     dest_path = os.path.join(dest_dir, name)
     try:
         print(YELLOW + "[*] " + RESET + f"Downloading {name}..." + RESET)
@@ -666,7 +675,7 @@ def cleanup_and_exit():
 
 
 def print_menu():
-    print("[C]onnect  - get a shell over your Void Recon")
+    print("[C]onnect  - get a shell over your Sub Rabbit")
     print("[U]pgrade your firmware")
     print("[P]ush payload to Void Recon")
     print("[Q]uit")
