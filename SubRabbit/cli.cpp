@@ -54,7 +54,7 @@ void CommandHandler::asciiToHex(byte* hex, const byte* ascii, int len) {
 
 void CommandHandler::printHelp() {
     Serial.println(F(
-        "=== Void Recon ===\n\n"
+        "=== Sub Rabbit ===\n\n"
         "MODULATION & RF SETTINGS:\n"
         "  mod <0-4>      - Set modulation (0=2FSK,1=GFSK,2=ASK/OOK,3=4FSK,4=MSK)\n"
         "  freq <MHz>     - Set frequency (300-348, 387-464, 779-928 MHz)\n"
