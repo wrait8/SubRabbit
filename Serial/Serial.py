@@ -160,18 +160,127 @@ def save_log_automatically(buffer):
 
 
 # === ARDUINO-CLI INTEGRATION ===
+def _detect_arduino_cli_asset_suffix():
+    """Map this machine's OS/arch to arduino-cli's release asset naming,
+    e.g. 'Linux_64bit.tar.gz', 'Windows_64bit.zip', 'macOS_ARM64.tar.gz'."""
+    import platform as _platform
+
+    machine = _platform.machine().lower()
+
+    if sys.platform == 'win32':
+        os_name, ext = "Windows", "zip"
+    elif sys.platform == 'darwin':
+        os_name, ext = "macOS", "tar.gz"
+    else:
+        os_name, ext = "Linux", "tar.gz"
+
+    if machine in ('x86_64', 'amd64'):
+        arch_name = "64bit"
+    elif machine in ('i386', 'i686', 'x86'):
+        arch_name = "32bit"
+    elif machine in ('arm64', 'aarch64'):
+        arch_name = "ARM64"
+    elif machine.startswith('armv7'):
+        arch_name = "ARMv7"
+    elif machine.startswith('armv6'):
+        arch_name = "ARMv6"
+    else:
+        arch_name = "64bit"  # best-effort fallback
+
+    return os_name, arch_name, ext, f"{os_name}_{arch_name}.{ext}"
+
+
+def download_and_install_arduino_cli():
+    """Fetch the matching arduino-cli binary straight from Arduino's official
+    GitHub releases and drop it next to this script. Nothing is bundled or
+    committed to the repo -- this always pulls fresh from the source, so
+    there's no redistribution / license-file concern on our end."""
+    import json
+    import tarfile
+    import tempfile
+    import urllib.request
+    import zipfile
+
+    os_name, arch_name, ext, suffix = _detect_arduino_cli_asset_suffix()
+    print(YELLOW + "[*] " + RESET + "arduino-cli not found, fetching from Arduino's GitHub releases..." + RESET)
+
+    api_url = "https://api.github.com/repos/arduino/arduino-cli/releases/latest"
+    req = urllib.request.Request(
+        api_url,
+        headers={"Accept": "application/vnd.github+json", "User-Agent": "VoidRecon-Toolkit"}
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode())
+    except Exception as e:
+        print(RED + f"[!] Failed to reach GitHub: {e}" + RESET)
+        return None
+
+    assets = data.get("assets", [])
+    match = next((a for a in assets if a.get("name", "").endswith(suffix)), None)
+    if not match:
+        print(RED + f"[!] No release asset found matching {suffix}" + RESET)
+        return None
+
+    print(GREEN + f"[+] Found: {match['name']}" + RESET)
+
+    tmp_dir = tempfile.mkdtemp(prefix="arduino_cli_dl_")
+    archive_path = os.path.join(tmp_dir, match["name"])
+    try:
+        print(YELLOW + "[*] " + RESET + f"Downloading {match['name']}..." + RESET)
+        urllib.request.urlretrieve(match["browser_download_url"], archive_path)
+    except Exception as e:
+        print(RED + f"[!] Download failed: {e}" + RESET)
+        return None
+
+    target_name = "arduino-cli.exe" if sys.platform == 'win32' else "arduino-cli"
+    dest_path = os.path.join(SCRIPT_DIR, target_name)
+
+    try:
+        if ext == "zip":
+            with zipfile.ZipFile(archive_path) as zf:
+                for member in zf.namelist():
+                    if os.path.basename(member) == target_name:
+                        with zf.open(member) as src, open(dest_path, 'wb') as dst:
+                            shutil.copyfileobj(src, dst)
+                        break
+        else:
+            with tarfile.open(archive_path, 'r:gz') as tf:
+                for member in tf.getmembers():
+                    if os.path.basename(member.name) == target_name:
+                        extracted = tf.extractfile(member)
+                        with open(dest_path, 'wb') as dst:
+                            shutil.copyfileobj(extracted, dst)
+                        break
+    except Exception as e:
+        print(RED + f"[!] Failed to extract arduino-cli: {e}" + RESET)
+        return None
+
+    if not os.path.isfile(dest_path):
+        print(RED + "[!] Extraction finished but the binary wasn't found inside the archive." + RESET)
+        return None
+
+    if sys.platform != 'win32':
+        os.chmod(dest_path, 0o755)
+
+    print(GREEN + f"[+] arduino-cli ready at: {dest_path}" + RESET)
+    return dest_path
+
+
 def find_arduino_cli():
-    """Look next to this script first, then on PATH."""
+    """Look next to this script first, then PATH, then self-download the
+    matching official release if neither has it."""
     candidates = ["arduino-cli", "arduino-cli.exe"]
     for name in candidates:
         local_path = os.path.join(SCRIPT_DIR, name)
-        if os.path.isfile(local_path) and os.access(local_path, os.X_OK) or \
-           (os.path.isfile(local_path) and sys.platform == 'win32'):
+        if os.path.isfile(local_path):
             return local_path
+
     on_path = shutil.which("arduino-cli")
     if on_path:
         return on_path
-    return None
+
+    return download_and_install_arduino_cli()
 
 
 def run_arduino_cli(cli_path, cli_args, label):
