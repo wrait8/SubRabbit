@@ -66,7 +66,7 @@ void loop() {
                 if (!cli.isChatMode()) {
                     Serial.write('\n');  // Print newline before processing
                     cli.processLine(buffer);
-                    Serial.print("vd1 > ");
+                    Serial.print("sr1 > ");
                 }
             }
             length = 0;
