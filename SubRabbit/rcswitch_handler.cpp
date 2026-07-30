@@ -1,5 +1,5 @@
 #include "rcswitch_handler.h"
-#include <ELECHOUSE_CC1101_SRC_DRV.h>
+#include <SmartRC_CC1101.h>
 
 RCSwitchHandler::RCSwitchHandler() 
     : initialized(false), gdoPin(2), lastCode(0), lastBits(0), lastDelay(0), lastProtocol(0) {
