@@ -59,7 +59,7 @@ void loop() {
             if (length == 0) {
                 // Empty line - just print the prompt without newline
                 if (!cli.isChatMode()) {
-                    Serial.print("vd1 > ");
+                    Serial.print("sr1 > ");
                 }
             } else {
                 // Non-empty line - process it
