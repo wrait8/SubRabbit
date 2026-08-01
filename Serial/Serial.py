@@ -363,7 +363,7 @@ def push_payload(port, baud):
     run_arduino_cli(
         cli_path,
         ["upload", "-p", upload_port, "--fqbn", fqbn, sketch_dir],
-        "Pushing payload to Void Recon"
+        "Pushing payload to Sub Rabbit"
     )
 
 
@@ -677,7 +677,7 @@ def cleanup_and_exit():
 def print_menu():
     print("[C]onnect  - get a shell over your Sub Rabbit")
     print("[U]pgrade your firmware")
-    print("[P]ush payload to Void Recon")
+    print("[P]ush payload to Sub Rabbit")
     print("[Q]uit")
     print()
 
