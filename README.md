@@ -25,7 +25,7 @@
 
 
 ## ScreenShot
-<img width="1056" height="565" alt="image" src="https://github.com/user-attachments/assets/42bb3226-4168-4c7f-89fd-9aa3ba73155e" />
+<img width="1125" height="527" alt="Screenshot 2026-08-01 140117" src="https://github.com/user-attachments/assets/b1081741-af84-4748-9b3e-f9ed70870d67" />
 
 ## Planned Improvements
 ### Edge-Based Recording (In Development)
