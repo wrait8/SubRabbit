@@ -9,7 +9,7 @@
 ---
 
 ## Features
-<img width="1920" height="1080" alt="render-1783769825014" src="https://github.com/user-attachments/assets/6120951a-2162-4bd6-90d4-06b33e4da682" />
+<img width="2160" height="1216" alt="subrabbit" src="https://github.com/user-attachments/assets/b3c39d85-df86-41d6-af86-523378f217de" />
 
 - Packet Sniffer: Receive and log RF packets.
 - Frequency Analyzer: Scan and detect active channels in Sub-GHz spectrum.
