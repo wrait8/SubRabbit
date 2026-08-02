@@ -25,7 +25,7 @@
 
 
 ## ScreenShot
-<img width="1115" height="576" alt="Screenshot 2026-08-02 230142" src="https://github.com/user-attachments/assets/0692ba3a-9443-4722-a4a8-f5ed006512cd" />
+<img width="1115" height="576" alt="Screenshot 2026-08-02 230142" src="https://github.com/user-attachments/assets/601a14f0-86f6-44cd-8f24-60de2f62e08d" />
 
 
 ## Planned Improvements
