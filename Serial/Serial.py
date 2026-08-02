@@ -77,27 +77,16 @@ except FileNotFoundError:
     pass
 atexit.register(readline.write_history_file, histfile)
 
-
 # === BANNER ===
 def ascii_banner():
-    banner = r"""
-                        (`.         ,-,
-                        ` `.    ,;' /
-                         `.  ,'/ .'
-                          `. X /.'
-                .-;--''--.._` ` (
-              .'            /   `
-             ,           ` '   Q '
-             ,         ,   `._    \
-          ,.|         '     `-.;_'
-          :  . `  ;    `  ` --,.._;
-           ' `    ,   )   .'
-              `._ ,  '   /_
-                 ; ,''-,;' ``-
-                  ``-..__``--`
-"""
+    banner = r"""   _____       __    ____        __    __    _ __ 
+  / ___/__  __/ /_  / __ \____ _/ /_  / /_  (_) /_
+  \__ \/ / / / __ \/ /_/ / __ `/ __ \/ __ \/ / __/
+ ___/ / /_/ / /_/ / _, _/ /_/ / /_/ / /_/ / / /_  
+/____/\__,_/_.___/_/ |_|\__,_/_.___/_.___/_/\__/"""
     print(banner)
     print()
+
 
 
 def get_timestamp():
@@ -610,7 +599,7 @@ def connect_serial(port, baud):
     try:
         ser = serial.Serial(port, baud, timeout=0.1)
         print("\r" + " " * 60 + "\r", end="", flush=True)
-        print(f"{MAGENTA}[^]{RESET} Session ID: {BLUE}{SESSION_ID}{RESET}")
+        print(f"{MAGENTA}[^]{RESET} Session ID: {BLUE}{SESSION_ID}{RESET}\n")
     except serial.SerialException:
         print("\r" + " " * 80 + "\r", end="", flush=True)
         print(RED + "[!] " + RESET + f"Port {port} hasn't been found.")
