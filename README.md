@@ -8,8 +8,6 @@
 <a href="https://github.com/wrait8/SubRabbit" title="Go to GitHub repo"><img src="https://img.shields.io/static/v1?label=wrait8&message=SubRabbit&color=magenta&logo=github" alt="wrait8 - SubRabbit"></a>
 <a href="https://github.com/wrait8/SubRabbit"><img src="https://img.shields.io/github/stars/wrait8/SubRabbit?style=social" alt="stars - SubRabbit"></a>
 <a href="https://github.com/wrait8/SubRabbit"><img src="https://img.shields.io/github/forks/wrait8/SubRabbit?style=social" alt="forks - SubRabbit"></a>
-
-
 </div>
 
 ## Features
