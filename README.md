@@ -11,7 +11,7 @@
 </div>
 
 ## Features
-<img width="2160" height="1216" alt="subrabbit" src="https://github.com/user-attachments/assets/b3c39d85-df86-41d6-af86-523378f217de" />
+<p align="center"><img alt="SubRabbit_Render" src="https://github.com/user-attachments/assets/2d75b4aa-5771-415c-89cb-edb284a3dce2" ></p>
 
 - Packet Sniffer: Receive and log RF packets.
 - Frequency Analyzer: Scan and detect active channels in Sub-GHz spectrum.
