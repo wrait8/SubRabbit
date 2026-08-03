@@ -310,7 +310,8 @@ def run_arduino_cli(cli_path, cli_args, label):
 
 
 def push_payload(port, baud):
-    """Compile + upload a .ino sketch via arduino-cli."""
+    """Upload a precompiled .bin payload via arduino-cli (same -i flow as
+    upgrade_firmware, just from a local file instead of a GitHub release)."""
     cli_path = find_arduino_cli()
     if not cli_path:
         print(RED + "[!] arduino-cli not found next to this script or on PATH." + RESET)
@@ -320,18 +321,13 @@ def push_payload(port, baud):
 
     print(GREEN + f"[+] Using arduino-cli: {cli_path}" + RESET)
 
-    sketch_path = input("Path to .ino file or sketch folder: ").strip().strip('"')
-    if not sketch_path:
+    bin_path = input("Path to .bin payload: ").strip().strip('"')
+    if not bin_path:
         print(YELLOW + "[!] No path given, aborting upload." + RESET)
         return
-    if not os.path.exists(sketch_path):
-        print(RED + f"[!] Path not found: {sketch_path}" + RESET)
+    if not os.path.isfile(bin_path):
+        print(RED + f"[!] File not found: {bin_path}" + RESET)
         return
-
-    # arduino-cli wants the sketch *folder*, not the .ino file directly
-    sketch_dir = sketch_path
-    if os.path.isfile(sketch_path):
-        sketch_dir = os.path.dirname(os.path.abspath(sketch_path))
 
     fqbn = input(f"FQBN [default: {DEFAULT_FQBN}]: ").strip()
     if not fqbn:
@@ -341,17 +337,9 @@ def push_payload(port, baud):
     if not upload_port:
         upload_port = port
 
-    ok = run_arduino_cli(
-        cli_path,
-        ["compile", "--fqbn", fqbn, sketch_dir],
-        "Compiling payload"
-    )
-    if not ok:
-        return
-
     run_arduino_cli(
         cli_path,
-        ["upload", "-p", upload_port, "--fqbn", fqbn, sketch_dir],
+        ["upload", "-p", upload_port, "--fqbn", fqbn, "-i", bin_path],
         "Pushing payload to Sub Rabbit"
     )
 
