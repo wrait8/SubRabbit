@@ -1,13 +1,16 @@
 # SubRabbit
+<div align="center">
 <img width="2281" height="624" alt="subrabbit (2)" src="https://github.com/user-attachments/assets/2fc8a925-5033-47c2-9387-f1e82c04a322" />
-
-
- <p align="center">
-  <b>A suite of RF offensive and defensive tools for the ESP32(Atmega32u4 in future)</b>
+  <p>
+  <b>A suite of RF offensive and defensive tools for the Atmega32u4</b>
  </p>
+<!-- Badges -->
+<a href="https://github.com/wrait8/SubRabbit" title="Go to GitHub repo"><img src="https://img.shields.io/static/v1?label=wrait8&message=SubRabbit&color=magenta&logo=github" alt="wrait8 - SubRabbit"></a>
+<a href="https://github.com/wrait8/SubRabbit"><img src="https://img.shields.io/github/stars/wrait8/SubRabbit?style=social" alt="stars - SubRabbit"></a>
+<a href="https://github.com/wrait8/SubRabbit"><img src="https://img.shields.io/github/forks/wrait8/SubRabbit?style=social" alt="forks - SubRabbit"></a>
 
 
----
+</div>
 
 ## Features
 <img width="2160" height="1216" alt="subrabbit" src="https://github.com/user-attachments/assets/b3c39d85-df86-41d6-af86-523378f217de" />
