@@ -13,8 +13,8 @@
 ## Features
 <p align="center"><img alt="SubRabbit_Render" src="https://github.com/user-attachments/assets/2d75b4aa-5771-415c-89cb-edb284a3dce2" ></p>
 
-- Packet Sniffer: Receive and log RF packets.
-- Frequency Analyzer: Scan and detect active channels in Sub-GHz spectrum.
+- Packet Sniffer: Receive RF packets.
+- Frequency Analyzer: Scan and detect active channels in Sub-GHz spectrum (`analyze`).
 - RSSI Monitoring: Display signal strength and link quality (LQI).
 - RAW RF Capture/Replay: Record raw RF samples (`rxraw`, `recraw`) and replay (`playraw`).
 - Fixed-Code Remote Capture/Replay: Capture and replay fixed-code signals (`recsig`, `playsig`).
@@ -23,8 +23,6 @@
 - Configurable Radio Parameters: Frequency, channel, data rate, deviation, bandwidth, sync, CRC, encoding, and more.
 - Jamming Mode: Continuous transmission on selected band (`jam`).
 - Brute-Force Mode: Timing-based signal brute forcing (`brute`).
-- RF Chat Mode: Peer-to-peer RF communication (`chat`).
-
 
 ## ScreenShot
 <img width="1110" height="587" alt="image" src="https://github.com/user-attachments/assets/9c60d6c4-d79c-4bff-97ff-41df03262f81" />
