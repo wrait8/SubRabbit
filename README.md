@@ -13,7 +13,7 @@
 ## Features
 <p align="center"><img alt="SubRabbit_Render" src="https://github.com/user-attachments/assets/2d75b4aa-5771-415c-89cb-edb284a3dce2" ></p>
 
-- Packet Sniffer: Receive RF packets.
+- Packet Sniffer: Receive RF packets (`rxraw`).
 - Frequency Analyzer: Scan and detect active channels in Sub-GHz spectrum (`analyze`).
 - RSSI Monitoring: Display signal strength and link quality (LQI).
 - RAW RF Capture/Replay: Record raw RF samples (`rxraw`, `recraw`) and replay (`playraw`).
