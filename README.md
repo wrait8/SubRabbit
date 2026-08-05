@@ -2,7 +2,7 @@
 <div align="center">
 <img width="2281" height="624" alt="subrabbit (2)" src="https://github.com/user-attachments/assets/2fc8a925-5033-47c2-9387-f1e82c04a322" />
   <p>
-  <b>A suite of RF offensive and defensive tools for the Atmega32u4</b>
+  <b>A suite of RF offensive and defensive tools</b>
  </p>
 <!-- Badges -->
 <a href="https://github.com/wrait8/SubRabbit" title="Go to GitHub repo"><img src="https://img.shields.io/static/v1?label=wrait8&message=SubRabbit&color=magenta&logo=github" alt="wrait8 - SubRabbit"></a>
