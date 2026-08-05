@@ -16,7 +16,7 @@
 - Packet Sniffer: Receive RF packets (`rxraw`).
 - Frequency Analyzer: Scan and detect active channels in Sub-GHz spectrum (`analyze`).
 - RSSI Monitoring: Display signal strength and link quality (LQI).
-- RAW RF Capture/Replay: Record raw RF samples (`rxraw`, `recraw`) and replay (`playraw`).
+- RAW RF Capture/Replay: Record raw RF samples (`recraw`) and replay (`playraw`).
 - Fixed-Code Remote Capture/Replay: Capture and replay fixed-code signals (`recsig`, `playsig`).
 - Packet Recording/Playback: Buffer, list, and replay packets (`rec`, `show`, `play`).
 - Multi-Modulation Support: 2-FSK, GFSK, ASK/OOK, 4-FSK, MSK.
