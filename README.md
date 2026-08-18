@@ -30,9 +30,8 @@
 ## Planned Improvements
 ### Edge-Based Recording (In Development)
 
--  **Flipper compatibility** - Edge timings format
--  **Interrupt-driven capture** - Accurate timing
--  **`.sub` file import/export** - Flipper Zero compatibility
+- [x]   **Interrupt-driven capture** - Accurate timing
+- [x]   **`.sub` file import/export** - Flipper Zero compatibility
 
 ## Getting Started
 Download the [latest release](https://github.com/wrait8/SubRabbit/releases/latest) of the firmware.
