@@ -13,7 +13,6 @@
 ## Features
 <p align="center"><img alt="SubRabbit_Render" src="https://github.com/user-attachments/assets/2d75b4aa-5771-415c-89cb-edb284a3dce2" ></p>
 
-- Packet Sniffer: Receive RF packets (`rxraw`).
 - Frequency Analyzer: Scan and detect active channels in Sub-GHz spectrum (`analyze`).
 - RSSI Monitoring: Display signal strength and link quality (LQI).
 - RAW RF Capture/Replay: Record raw RF samples (`recraw`) and replay (`playraw`).
@@ -24,7 +23,11 @@
 - Jamming Mode: Continuous transmission on selected band (`jam`).
 - Brute-Force Mode: Timing-based signal brute forcing (`brute`).
 
-## ScreenShot
+## Web(Only Mk.II)
+<img width="1555" height="897" alt="Screenshot 2026-08-19 002443" src="https://github.com/user-attachments/assets/fa25900a-2cee-47a6-a85f-3ce432554c3f" />
+
+
+## CLI 
 <img width="1110" height="587" alt="image" src="https://github.com/user-attachments/assets/9c60d6c4-d79c-4bff-97ff-41df03262f81" />
 
 ## Planned Improvements
