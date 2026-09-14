@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="SubRabbit — sub‑1 GHz Swiss Army knife. Sniff, record, replay, and brute‑force signals with ESP32 and CC1101." />
   <title>SubRabbit · wrait8</title>
-  <meta name="theme-color" content="#0b0c0e" />
+  <meta name="theme-color" content="#0a0b0d" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -24,47 +24,88 @@
 
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    
+
+    :root {
+      --bg: #0a0b0d;
+      --bg-alt: #0d0f12;
+      --surface: rgba(20, 23, 26, 0.65);
+      --surface-hover: rgba(26, 30, 34, 0.85);
+      --border: rgba(255,255,255,0.07);
+      --border-hover: rgba(110,255,224,0.28);
+      --text: #f0f5f5;
+      --text-muted: rgba(210,222,224,0.55);
+      --text-dim: rgba(210,222,224,0.32);
+      --mint: #6effe0;
+      --mint-soft: rgba(110,255,224,0.5);
+      --amber: #ff9a68;
+      --mono: 'Space Mono', monospace;
+      --sans: 'Space Grotesk', sans-serif;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+    }
+
+    html { scroll-behavior: smooth; }
+
     body {
-      background: #0b0c0e;
+      background: var(--bg);
       min-height: 100vh;
-      font-family: 'Space Grotesk', sans-serif;
-      color: #f0f5f5;
+      font-family: var(--sans);
+      color: var(--text);
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
+    }
+
+    ::selection { background: var(--mint); color: #061013; }
+
+    a:focus-visible, button:focus-visible, .btn:focus-visible {
+      outline: 1.5px solid var(--mint);
+      outline-offset: 3px;
     }
 
     .page-wrapper {
       position: relative;
       min-height: 100vh;
-      background: #0d0f12;
+      background: var(--bg-alt);
       overflow: hidden;
     }
 
     .page-bg {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background: url('https://wrait8.github.io/Images/bg%20colors%20effect.png') center/cover no-repeat;
-      opacity: 0.55;
+      opacity: 0.5;
       mix-blend-mode: screen;
       pointer-events: none;
       z-index: 0;
     }
-
     .page-bg::after {
       content: '';
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(ellipse at 30% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 60%),
-        radial-gradient(ellipse at 70% 50%, rgba(200, 200, 255, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 80%, rgba(255, 255, 255, 0.04) 0%, transparent 40%);
+        radial-gradient(ellipse at 30% 50%, rgba(255,255,255,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse at 70% 50%, rgba(200,200,255,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(255,255,255,0.04) 0%, transparent 40%);
       pointer-events: none;
     }
-
+    /* fine scanline texture — CRT/oscilloscope feel, matches an RF instrument */
+    .page-scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0.018) 0px,
+        rgba(255,255,255,0.018) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      opacity: 0.5;
+    }
     .page-wrapper::before {
       content: '';
       position: fixed;
@@ -75,22 +116,45 @@
       pointer-events: none;
     }
 
-    a { color: #6effe0; text-decoration: none; transition: color 0.2s; }
+    a { color: var(--mint); text-decoration: none; transition: color 0.2s; }
     a:hover { color: #a0fff0; }
 
-    /* ── All content sits above bg ── */
-    .nav, .hero, .section, .footer {
-      position: relative;
-      z-index: 2;
+    .nav, .hero, .section, .footer { position: relative; z-index: 2; }
+
+    /* ── shape language: a clipped corner, echoing a PCB test-pad / connector edge ── */
+    .notch {
+      clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
     }
+    .notch-sm {
+      clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    }
+
+    /* ── terminal-style section markers, in place of a generic tracked-out eyebrow ── */
+    .prompt {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      color: var(--mint);
+      font-weight: 400;
+    }
+    .prompt::before { content: '$'; color: var(--text-dim); }
+    .prompt .cursor {
+      display: inline-block;
+      width: 7px; height: 1rem;
+      background: var(--mint);
+      animation: blink 1.1s steps(1) infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
 
     .nav {
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(11, 12, 14, 0.9);
+      background: rgba(10, 11, 13, 0.88);
       backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(255,255,255,0.04);
+      border-bottom: 1px solid var(--border);
       padding: 0.6rem 1.5rem;
     }
     .nav__inner {
@@ -106,22 +170,21 @@
       display: flex;
       align-items: center;
       gap: 0.6rem;
-      font-family: 'Space Mono', monospace;
+      font-family: var(--mono);
       font-weight: 700;
-      font-size: 1.3rem;
+      font-size: 1.25rem;
       color: #fff;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.01em;
     }
-    .nav__brand em { font-style: normal; color: #6effe0; }
+    .nav__brand em { font-style: normal; color: var(--mint); }
     .nav__badge {
-      background: rgba(110, 255, 224, 0.12);
-      padding: 0.15rem 0.65rem;
-      font-size: 0.65rem;
+      background: rgba(110,255,224,0.1);
+      padding: 0.15rem 0.6rem;
+      font-size: 0.68rem;
       font-weight: 500;
-      color: #6effe0;
-      border: 1px solid rgba(110, 255, 224, 0.15);
-      letter-spacing: 0.04em;
-      font-family: 'Space Mono', monospace;
+      color: var(--mint);
+      border: 1px solid rgba(110,255,224,0.18);
+      font-family: var(--mono);
     }
     .nav__links {
       display: flex;
@@ -129,7 +192,6 @@
       font-size: 0.9rem;
       font-weight: 500;
       flex-wrap: wrap;
-      font-family: 'Space Grotesk', sans-serif;
     }
     .nav__links a {
       color: rgba(220,230,235,0.5);
@@ -137,40 +199,49 @@
       padding-bottom: 0.2rem;
       transition: all 0.2s;
     }
-    .nav__links a:hover { color: #fff; border-bottom-color: rgba(110,255,224,0.3); }
+    .nav__links a:hover { color: #fff; border-bottom-color: var(--border-hover); }
     .nav__actions { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+
     .btn {
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      padding: 0.5rem 1.2rem;
+      padding: 0.55rem 1.3rem;
       font-weight: 500;
       font-size: 0.85rem;
       border: 1px solid transparent;
-      transition: all 0.25s ease;
+      transition: all 0.2s ease;
       cursor: pointer;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--sans);
     }
     .btn--ghost {
-      background: transparent;
-      color: rgba(220,230,235,0.6);
-      border-color: rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
+      color: rgba(220,230,235,0.65);
+      border-color: var(--border);
     }
-    .btn--ghost:hover { background: rgba(255,255,255,0.04); color: #fff; transform: translateY(-2px); }
+    .btn--ghost:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.15); }
     .btn--primary {
-      background: #6effe0;
-      color: #0b0c0e;
-      border-color: #6effe0;
+      background: var(--mint);
+      color: #06181a;
+      border-color: var(--mint);
+      font-weight: 600;
     }
-    .btn--primary:hover { background: #8affea; transform: translateY(-2px); }
-    .btn--sm { padding: 0.3rem 1rem; font-size: 0.8rem; }
-    .nav__burger { 
-      display: none; 
-      background: none; 
-      border: none; 
-      color: #fff; 
-      font-size: 1.6rem; 
-      cursor: pointer; 
+    .btn--primary:hover { background: #8affea; box-shadow: 0 0 24px rgba(110,255,224,0.25); }
+    .btn--amber {
+      background: var(--amber);
+      color: #21100a;
+      border-color: var(--amber);
+      font-weight: 600;
+    }
+    .btn--amber:hover { background: #ffb28c; box-shadow: 0 0 24px rgba(255,154,104,0.25); }
+    .btn--sm { padding: 0.32rem 1rem; font-size: 0.8rem; }
+    .nav__burger {
+      display: none;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.6rem;
+      cursor: pointer;
       padding: 0.2rem 0.4rem;
       line-height: 1;
       align-self: center;
@@ -179,8 +250,7 @@
 
     .hero {
       position: relative;
-      z-index: 2;
-      min-height: 90vh;
+      min-height: 88vh;
       display: flex;
       align-items: center;
       padding: 2rem 1.5rem;
@@ -190,26 +260,46 @@
       margin: 0 auto;
       width: 100%;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.05fr 0.95fr;
       gap: 3rem;
       align-items: center;
     }
-    .hero__copy { display: flex; flex-direction: column; gap: 1.2rem; }
-    .hero__title {
-      font-family: 'Space Mono', monospace;
-      font-size: clamp(2.8rem, 8vw, 4.8rem);
-      font-weight: 700;
-      line-height: 1.1;
-      color: #fff;
-      letter-spacing: 0.02em;
-      text-shadow: 0 0 40px rgba(110,255,224,0.05), 0 4px 30px rgba(0,0,0,0.9);
+    .hero__copy { display: flex; flex-direction: column; gap: 1.1rem; }
+    .hero__boot {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
     }
-    .hero__title .accent { color: #6effe0; }
+    .hero__boot .go { color: var(--mint); }
+    .hero__boot .cursor {
+      display: inline-block;
+      width: 7px; height: 1rem;
+      background: var(--mint);
+      animation: blink 1.1s steps(1) infinite;
+    }
+    .hero__title {
+      font-family: var(--mono);
+      font-size: clamp(2.6rem, 7vw, 4.4rem);
+      font-weight: 700;
+      line-height: 1.08;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .hero__title span { display: block; }
+    .hero__title .l2 {
+      color: var(--text-muted);
+      font-size: 0.62em;
+      font-weight: 400;
+      margin-top: 0.35rem;
+      letter-spacing: 0;
+    }
     .hero__sub {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.15rem;
-      color: rgba(200,210,215,0.7);
-      max-width: 500px;
+      font-size: 1.1rem;
+      color: rgba(200,212,215,0.68);
+      max-width: 480px;
       line-height: 1.6;
       font-weight: 300;
     }
@@ -220,29 +310,18 @@
       gap: 2rem;
       margin-top: 1.2rem;
       padding-top: 1.2rem;
-      border-top: 1px solid rgba(255,255,255,0.04);
+      border-top: 1px solid var(--border);
     }
     .stat { display: flex; align-items: center; gap: 0.6rem; }
     .stat__icon { font-size: 1.2rem; color: rgba(200,210,215,0.25); }
-    .stat__v { 
-      font-weight: 600; 
-      color: #fff; 
-      font-family: 'Space Mono', monospace;
-      min-width: 1.5rem;
-    }
-    .stat__l { font-size: 0.75rem; color: rgba(200,210,215,0.35); margin-left: 0.2rem; font-family: 'Space Grotesk', sans-serif; }
-    .stat__v.loading {
-      opacity: 0.3;
-      animation: pulse 1s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 0.6; }
-    }
+    .stat__v { font-weight: 600; color: #fff; font-family: var(--mono); min-width: 1.5rem; }
+    .stat__l { font-size: 0.75rem; color: var(--text-dim); margin-left: 0.2rem; }
+    .stat__v.loading { opacity: 0.3; animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+
     .hero__visual {
-      background: rgba(18,18,18,0.5);
-      border: 1px solid rgba(255,255,255,0.04);
-      padding: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
       aspect-ratio: 4/3;
       display: flex;
       align-items: center;
@@ -252,157 +331,117 @@
       overflow: hidden;
       transition: border-color 0.3s ease;
     }
-    .hero__visual:hover { border-color: rgba(110,255,224,0.12); }
-    #hero-viewer {
-      width: 100%;
-      height: 100%;
-      display: block;
+    .hero__visual:hover { border-color: var(--border-hover); }
+    .hero__visual::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(110,255,224,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(110,255,224,0.05) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
     }
+    #hero-viewer { width: 100%; height: 100%; display: block; position: relative; z-index: 1; }
     .viewer__hint {
       position: absolute;
-      bottom: 12px;
-      right: 16px;
-      font-size: 0.7rem;
-      color: rgba(200,210,215,0.15);
+      bottom: 12px; right: 16px;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: rgba(200,210,215,0.3);
       display: flex;
       align-items: center;
       gap: 0.3rem;
       background: rgba(0,0,0,0.5);
-      padding: 0.2rem 0.8rem;
+      padding: 0.2rem 0.7rem;
       backdrop-filter: blur(4px);
       pointer-events: none;
-      font-family: 'Space Grotesk', sans-serif;
+      z-index: 2;
     }
 
     .section {
-      position: relative;
-      z-index: 2;
-      padding: 4rem 1.5rem;
+      padding: 4.5rem 1.5rem;
       border-top: 1px solid rgba(255,255,255,0.03);
     }
     .section--alt { background: rgba(255,255,255,0.008); }
     .section__inner { max-width: 1200px; margin: 0 auto; }
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: #6effe0;
-      background: rgba(110,255,224,0.05);
-      padding: 0.2rem 0.8rem;
-      border: 1px solid rgba(110,255,224,0.06);
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 400;
-    }
     .section__title {
-      font-family: 'Space Mono', monospace;
-      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-family: var(--mono);
+      font-size: clamp(1.9rem, 4.5vw, 2.9rem);
       font-weight: 700;
       color: #fff;
-      margin: 0.6rem 0 0.4rem;
-      line-height: 1.15;
-      text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+      margin: 0.7rem 0 0.5rem;
+      line-height: 1.2;
     }
-    .section__title .accent { color: #6effe0; }
     .section__sub {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.05rem;
-      color: rgba(200,210,215,0.5);
-      max-width: 600px;
-      margin-bottom: 2rem;
+      font-size: 1.02rem;
+      color: var(--text-muted);
+      max-width: 560px;
+      margin-bottom: 2.2rem;
       font-weight: 300;
+      line-height: 1.55;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 1.5rem;
+      gap: 1.25rem;
       margin: 1.5rem 0;
     }
     .card {
-      background: rgba(18,18,18,0.6);
+      background: var(--surface);
       backdrop-filter: blur(4px);
-      border: 1px solid rgba(255,255,255,0.04);
-      padding: 1.8rem 1.5rem;
-      transition: all 0.3s ease;
+      border: 1px solid var(--border);
+      padding: 1.7rem 1.5rem;
+      transition: border-color 0.25s ease, background 0.25s ease;
       cursor: default;
+      position: relative;
     }
-    .card:hover { 
-      border-color: rgba(110,255,224,0.2); 
-      transform: translateY(-6px);
-      background: rgba(18,18,18,0.8);
-    }
-    .card__icon { font-size: 1.8rem; color: #6effe0; opacity: 0.6; margin-bottom: 0.6rem; }
-    .card__title { 
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 600; 
-      color: #fff; 
-      font-size: 1.1rem; 
-      margin-bottom: 0.3rem; 
-    }
-    .card__desc { 
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.95rem; 
-      color: rgba(200,210,215,0.55); 
-      line-height: 1.5;
-      font-weight: 300;
-    }
+    .card:hover { border-color: var(--border-hover); background: var(--surface-hover); }
+    .card--warn:hover { border-color: rgba(255,154,104,0.3); }
+    .card__icon { font-size: 1.7rem; color: var(--mint); opacity: 0.7; margin-bottom: 0.6rem; }
+    .card--warn .card__icon { color: var(--amber); }
+    .card__title { font-weight: 600; color: #fff; font-size: 1.08rem; margin-bottom: 0.35rem; }
+    .card__desc { font-size: 0.94rem; color: var(--text-muted); line-height: 1.55; font-weight: 300; }
     .card__desc code {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.85rem;
+      font-family: var(--mono);
+      font-size: 0.82rem;
       background: rgba(255,255,255,0.05);
       padding: 0.05rem 0.4rem;
-      color: #6effe0;
+      color: var(--mint);
     }
 
     .flash-options {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1.5rem;
+      gap: 1.25rem;
       margin: 2rem 0;
     }
     .flash-card {
-      background: rgba(18,18,18,0.6);
-      border: 1px solid rgba(255,255,255,0.04);
-      padding: 1.8rem 1.5rem;
-      transition: all 0.3s ease;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1.7rem 1.5rem;
+      transition: border-color 0.25s ease, background 0.25s ease;
       display: flex;
       flex-direction: column;
       cursor: default;
     }
-    .flash-card:hover { 
-      border-color: rgba(110,255,224,0.2); 
-      transform: translateY(-6px);
-      background: rgba(18,18,18,0.8);
-    }
-    .flash-card h3 { 
-      font-family: 'Space Mono', monospace; 
-      font-size: 1.1rem; 
-      color: #fff; 
-      margin-bottom: 0.3rem; 
-    }
-    .flash-card p { 
-      font-family: 'Space Grotesk', sans-serif;
-      color: rgba(200,210,215,0.5); 
-      font-size: 0.9rem; 
-      line-height: 1.5; 
-      flex: 1;
-      font-weight: 300;
-    }
+    .flash-card:hover { border-color: var(--border-hover); background: var(--surface-hover); }
+    .flash-card h3 { font-family: var(--mono); font-size: 1.05rem; color: #fff; margin-bottom: 0.35rem; }
+    .flash-card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.55; flex: 1; font-weight: 300; }
     .flash-card p code {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--mono);
       font-size: 0.8rem;
       background: rgba(255,255,255,0.05);
       padding: 0.05rem 0.4rem;
-      color: #6effe0;
+      color: var(--mint);
     }
-    .flash-card .foot { margin-top: 1rem; display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .flash-card .foot { margin-top: 1.1rem; display: flex; gap: 0.6rem; flex-wrap: wrap; }
 
     .release-banner {
-      background: rgba(18,18,18,0.5);
-      border: 1px solid rgba(255,255,255,0.04);
+      background: var(--surface);
+      border: 1px solid var(--border);
       padding: 1.2rem 1.8rem;
       display: flex;
       flex-wrap: wrap;
@@ -411,199 +450,108 @@
       margin-bottom: 2rem;
       transition: border-color 0.3s ease;
     }
-    .release-banner:hover { border-color: rgba(110,255,224,0.1); }
-    .release-banner .label { 
-      font-size: 0.7rem; 
-      color: rgba(200,210,215,0.25); 
-      text-transform: uppercase; 
-      letter-spacing: 0.08em;
-      font-family: 'Space Grotesk', sans-serif;
-    }
-    .release-banner .version { 
-      font-family: 'Space Mono', monospace; 
-      font-size: 1.4rem; 
-      font-weight: 600; 
-      color: #fff; 
-    }
-    .release-banner .meta { 
-      font-size: 0.8rem; 
-      color: rgba(200,210,215,0.35);
-      font-family: 'Space Grotesk', sans-serif;
-    }
-    .release-banner .meta span { color: #6effe0; }
+    .release-banner:hover { border-color: var(--border-hover); }
+    .release-banner .label { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); }
+    .release-banner .version { font-family: var(--mono); font-size: 1.4rem; font-weight: 600; color: #fff; }
+    .release-banner .meta { font-size: 0.8rem; color: var(--text-muted); }
+    .release-banner .meta span { color: var(--mint); }
 
     .hardware-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.5rem;
+      gap: 1.25rem;
       margin-top: 1.5rem;
     }
     .hardware-card {
-      background: rgba(18,18,18,0.5);
-      border: 1px solid rgba(255,255,255,0.04);
+      background: var(--surface);
+      border: 1px solid var(--border);
       padding: 1.5rem;
-      transition: all 0.3s ease;
+      transition: border-color 0.25s ease, background 0.25s ease;
       cursor: default;
     }
-    .hardware-card:hover { 
-      border-color: rgba(110,255,224,0.2); 
-      transform: translateY(-4px);
-      background: rgba(18,18,18,0.7);
-    }
-    .hardware-card h3 { 
-      font-family: 'Space Mono', monospace;
-      font-size: 1.1rem; 
-      color: #fff; 
-      margin-bottom: 0.4rem; 
-    }
-    .hardware-card p { 
-      font-family: 'Space Grotesk', sans-serif;
-      color: rgba(200,210,215,0.5); 
-      font-size: 0.9rem;
-      font-weight: 300;
-    }
+    .hardware-card:hover { border-color: var(--border-hover); background: var(--surface-hover); }
+    .hardware-card h3 { font-family: var(--mono); font-size: 1.05rem; color: #fff; margin-bottom: 0.4rem; }
+    .hardware-card p { color: var(--text-muted); font-size: 0.9rem; font-weight: 300; line-height: 1.5; }
     .hardware-card p code {
-      font-family: 'Space Mono', monospace;
+      font-family: var(--mono);
       font-size: 0.8rem;
       background: rgba(255,255,255,0.05);
       padding: 0.05rem 0.4rem;
-      color: #6effe0;
+      color: var(--mint);
     }
 
     .footer {
-      position: relative;
-      z-index: 2;
       border-top: 1px solid rgba(255,255,255,0.03);
       padding: 2rem 1.5rem 1.5rem;
       text-align: center;
       font-size: 0.8rem;
-      font-family: 'Space Grotesk', sans-serif;
       width: 100%;
     }
-    .footer__inner {
-      max-width: 1300px;
-      margin: 0 auto;
-    }
-    .footer__links { 
-      display: flex; 
-      justify-content: center; 
-      flex-wrap: wrap; 
-      gap: 1.5rem; 
-      margin-bottom: 1rem; 
-      align-items: center;
-    }
-    .footer__links a { 
-      color: rgba(200,210,215,0.25); 
-      transition: color 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-family: 'Space Grotesk', sans-serif;
-    }
+    .footer__inner { max-width: 1300px; margin: 0 auto; }
+    .footer__links { display: flex; justify-content: center; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1rem; align-items: center; }
+    .footer__links a { color: rgba(200,210,215,0.28); transition: color 0.2s; display: inline-flex; align-items: center; gap: 0.4rem; }
     .footer__links a:hover { color: #fff; }
     .footer__links a i { font-size: 1rem; }
-    .footer p { 
-      font-family: 'Space Grotesk', sans-serif;
-      color: rgba(200,210,215,0.15);
-    }
-    .footer p a { color: rgba(200,210,215,0.3); }
+    .footer p { color: var(--text-dim); font-family: var(--mono); font-size: 0.75rem; }
+    .footer p a { color: rgba(200,210,215,0.32); }
     .footer p a:hover { color: #fff; }
 
-    /* ── Mobile fixes ── */
+    /* ── Mobile ── */
     @media (max-width: 800px) {
       .hero__inner { grid-template-columns: 1fr; gap: 2rem; }
-      
-      .hero__title { text-align: left; }
-      .hero__sub { max-width: 100%; text-align: left; }
       .hero__cta { justify-content: flex-start; }
       .hero__stats { gap: 0.8rem; justify-content: flex-start; padding-top: 0.8rem; margin-top: 0.8rem; }
-      
+
       .nav__actions .btn--ghost { display: none; }
       .nav__burger { display: block; }
-      
-      .nav__links { 
-        display: none; 
+      .nav__links {
+        display: none;
         width: 100%;
         flex-direction: column;
         align-items: flex-start;
         gap: 0.8rem;
         padding: 1rem 0;
-        border-top: 1px solid rgba(255,255,255,0.04);
+        border-top: 1px solid var(--border);
         margin-top: 0.6rem;
         order: 3;
       }
       .nav__links.open { display: flex; }
-      .nav__inner { 
-        flex-wrap: wrap; 
-        justify-content: space-between;
-      }
+      .nav__inner { flex-wrap: wrap; justify-content: space-between; }
       .nav__brand { order: 1; }
       .nav__actions { order: 2; }
       .nav__links { order: 3; }
-      
-      .hero__cta .btn {
-        font-size: 1rem;
-        padding: 0.7rem 1.8rem;
-        min-width: 140px;
-        justify-content: center;
-      }
-      
-      .stat { 
-        flex-direction: row; 
-        align-items: center; 
-        gap: 0.3rem;
-        font-size: 0.85rem;
-      }
+
+      .hero__cta .btn { font-size: 1rem; padding: 0.7rem 1.8rem; min-width: 140px; justify-content: center; }
+      .stat { flex-direction: row; align-items: center; gap: 0.3rem; font-size: 0.85rem; }
       .stat__icon { font-size: 0.9rem; }
       .stat__v { font-size: 0.9rem; }
       .stat__l { font-size: 0.65rem; margin-left: 0.1rem; }
-      
+
       .hero__visual { min-height: 200px; }
       .release-banner { flex-direction: column; text-align: center; gap: 0.8rem; }
       .flash-options { grid-template-columns: 1fr; }
       .hardware-grid { grid-template-columns: 1fr; }
-      
+
       .footer { padding: 1.5rem 0.8rem; }
-      .footer__links { 
-        gap: 0.8rem; 
-        width: 100%;
-        max-width: 100%;
-      }
+      .footer__links { gap: 0.8rem; width: 100%; max-width: 100%; }
       .footer__links a { font-size: 0.8rem; }
-      
-      .card, .flash-card, .hardware-card {
-        will-change: auto;
-      }
-      .card:hover, .flash-card:hover, .hardware-card:hover {
-        transform: none;
-      }
     }
 
     @media (max-width: 480px) {
       .nav { padding: 0.4rem 0.8rem; }
       .nav__brand { font-size: 1rem; }
-      
-      .hero__cta .btn {
-        font-size: 0.9rem;
-        padding: 0.6rem 1.4rem;
-        min-width: 120px;
-      }
-      
+      .hero__cta .btn { font-size: 0.9rem; padding: 0.6rem 1.4rem; min-width: 120px; }
       .hero__stats { gap: 0.5rem; }
       .stat { gap: 0.2rem; font-size: 0.75rem; }
       .stat__icon { font-size: 0.8rem; }
       .stat__v { font-size: 0.8rem; }
       .stat__l { font-size: 0.6rem; }
-      
-      .section { padding: 2rem 0.8rem; }
+      .section { padding: 2.2rem 0.8rem; }
       .hero { padding: 1rem 0.8rem; min-height: 80vh; }
       .hero__visual { min-height: 180px; }
-      .hero__title { font-size: clamp(2rem, 10vw, 2.8rem); text-align: left; }
-      .hero__sub { font-size: 0.95rem; text-align: left; }
-      .card { padding: 1.2rem 1rem; }
-      .flash-card { padding: 1.2rem 1rem; }
-      .hardware-card { padding: 1.2rem 1rem; }
-      
+      .hero__title { font-size: clamp(2rem, 10vw, 2.8rem); }
+      .hero__sub { font-size: 0.95rem; }
+      .card, .flash-card, .hardware-card { padding: 1.2rem 1rem; }
       .footer { padding: 1.5rem 0.5rem; }
       .footer__links { gap: 0.6rem; font-size: 0.75rem; }
       .footer__links a { font-size: 0.7rem; }
@@ -613,12 +561,13 @@
 <body>
 <div class="page-wrapper">
   <div class="page-bg"></div>
+  <div class="page-scanlines"></div>
 
   <header class="nav">
     <div class="nav__inner">
       <a href="#" class="nav__brand">
         <span class="nav__logo">SUB<em>RABBIT</em></span>
-        <span class="nav__badge" id="nav-version">v0.0.1</span>
+        <span class="nav__badge notch-sm" id="nav-version">v0.0.1</span>
       </a>
       <nav class="nav__links" id="nav-links">
         <a href="#features">Features</a>
@@ -627,8 +576,8 @@
         <a href="https://github.com/wrait8/SubRabbit/wiki" target="_blank">Wiki</a>
       </nav>
       <div class="nav__actions">
-        <a class="btn btn--ghost btn--sm" href="https://github.com/wrait8/SubRabbit" target="_blank"><i class="hn hn-github"></i> GitHub</a>
-        <a class="btn btn--ghost btn--sm" href="https://github.com/wrait8/SubRabbit/releases" target="_blank"><i class="hn hn-download"></i> Releases</a>
+        <a class="btn btn--ghost btn--sm notch-sm" href="https://github.com/wrait8/SubRabbit" target="_blank"><i class="hn hn-github"></i> GitHub</a>
+        <a class="btn btn--ghost btn--sm notch-sm" href="https://github.com/wrait8/SubRabbit/releases" target="_blank"><i class="hn hn-download"></i> Releases</a>
         <button class="nav__burger" id="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
       </div>
     </div>
@@ -639,11 +588,12 @@
     <section class="hero">
       <div class="hero__inner">
         <div class="hero__copy">
-          <h1 class="hero__title">Sub‑1 GHz<br />Swiss Army knife<span class="accent"></span></h1>
-          <p class="hero__sub">Sniff, record, replay, and brute‑force signals with SubRabbit. Wide frequency coverage, multiple modulations, and a full packet engine.</p>
+          <div class="hero__boot">root@esp32:~$ <span class="go">./subrabbit --scan</span><span class="cursor"></span></div>
+          <h1 class="hero__title"><span>Sub‑1 GHz</span><span class="l2">Swiss army knife</span></h1>
+          <p class="hero__sub">Sniff, record, replay, and brute‑force signals. Wide frequency coverage, multiple modulations, and a full packet engine on ESP32 + CC1101.</p>
           <div class="hero__cta">
-            <a href="https://github.com/wrait8/SubRabbit/wiki" target="_blank" class="btn btn--primary">Wiki</a>
-            <a href="https://github.com/wrait8/SubRabbit" class="btn btn--ghost" target="_blank"><i class="hn hn-github"></i> View source</a>
+            <a href="https://github.com/wrait8/SubRabbit/wiki" target="_blank" class="btn btn--primary notch-sm">Read the wiki</a>
+            <a href="https://github.com/wrait8/SubRabbit" class="btn btn--ghost notch-sm" target="_blank"><i class="hn hn-github"></i> View source</a>
           </div>
           <div class="hero__stats">
             <div class="stat"><i class="hn hn-star stat__icon"></i><div class="stat__body"><span class="stat__v loading" id="stars-count">—</span><span class="stat__l">stars</span></div></div>
@@ -652,7 +602,7 @@
             <div class="stat"><i class="hn hn-check-circle stat__icon"></i><div class="stat__body"><span class="stat__v">MIT</span><span class="stat__l">license</span></div></div>
           </div>
         </div>
-        <div class="hero__visual">
+        <div class="hero__visual notch">
           <div id="hero-viewer"></div>
           <span class="viewer__hint"><i class="ti ti-hand-move"></i> drag to rotate</span>
         </div>
@@ -661,8 +611,8 @@
 
     <section class="section" id="features">
       <div class="section__inner">
-        <span class="eyebrow"><i class="hn hn-wifi"></i>Features</span>
-        <h2 class="section__title">Everything RF,<br />one tool<span class="accent"></span></h2>
+        <span class="prompt">ls features/<span class="cursor"></span></span>
+        <h2 class="section__title">Everything RF, one tool</h2>
         <p class="section__sub">Packet sniffer, frequency analyzer, raw capture/replay, jamming, brute‑force, and more.</p>
         <div class="grid">
           <div class="card"><div class="card__icon"><i class="ti ti-antenna"></i></div><h3 class="card__title">Packet Sniffer</h3><p class="card__desc">Receive and log RF packets with live RSSI monitoring and link quality.</p></div>
@@ -670,26 +620,26 @@
           <div class="card"><div class="card__icon"><i class="ti ti-device-floppy"></i></div><h3 class="card__title">RAW Capture / Replay</h3><p class="card__desc">Record raw RF samples (<code>recraw</code>) and replay (<code>playraw</code>) with precision.</p></div>
           <div class="card"><div class="card__icon"><i class="ti ti-repeat"></i></div><h3 class="card__title">Fixed‑Code Replay</h3><p class="card__desc">Capture and replay fixed‑code signals (<code>recsig</code>, <code>playsig</code>) for remotes.</p></div>
           <div class="card"><div class="card__icon"><i class="ti ti-settings"></i></div><h3 class="card__title">Multi‑Modulation</h3><p class="card__desc">2‑FSK, GFSK, ASK/OOK, 4‑FSK, MSK — full configurable radio parameters.</p></div>
-          <div class="card"><div class="card__icon"><i class="ti ti-zap"></i></div><h3 class="card__title">Jamming &amp; Brute‑Force</h3><p class="card__desc">Continuous jamming (<code>jam</code>) and timing‑based brute‑force (<code>brute</code>) modes.</p></div>
+          <div class="card card--warn"><div class="card__icon"><i class="ti ti-zap"></i></div><h3 class="card__title">Jamming &amp; Brute‑Force</h3><p class="card__desc">Continuous jamming (<code>jam</code>) and timing‑based brute‑force (<code>brute</code>) modes.</p></div>
         </div>
       </div>
     </section>
 
     <section class="section section--alt" id="flash">
       <div class="section__inner">
-        <span class="eyebrow"><i class="hn hn-bolt"></i>Flash</span>
-        <h2 class="section__title">Pick your method<span class="accent"></span></h2>
+        <span class="prompt">./flash --help<span class="cursor"></span></span>
+        <h2 class="section__title">Pick your method</h2>
         <p class="section__sub">Choose the flashing approach that fits your workflow.</p>
 
-        <div class="release-banner">
+        <div class="release-banner notch">
           <div>
-            <div class="label">Latest release</div>
+            <div class="label">latest release</div>
             <div class="version" id="release-version">—</div>
             <div class="meta" id="release-meta">Loading...</div>
           </div>
           <div style="display:flex; gap:0.8rem; flex-wrap:wrap;">
-            <a href="https://github.com/wrait8/SubRabbit/releases/latest" target="_blank" class="btn btn--primary btn--sm" id="download-link">Download assets</a>
-            <a href="https://github.com/wrait8/SubRabbit/releases" target="_blank" class="btn btn--ghost btn--sm">All releases</a>
+            <a href="https://github.com/wrait8/SubRabbit/releases/latest" target="_blank" class="btn btn--primary btn--sm notch-sm" id="download-link">Download assets</a>
+            <a href="https://github.com/wrait8/SubRabbit/releases" target="_blank" class="btn btn--ghost btn--sm notch-sm">All releases</a>
           </div>
         </div>
 
@@ -698,8 +648,7 @@
             <h3>Web Flasher</h3>
             <p>Real ESP32 protocol via Web Serial — no toolchain needed. Connect, select firmware, flash.</p>
             <div class="foot">
-              <a href="https://wrait8.github.io/WFlasher/" target="_blank" class="btn btn--primary btn--sm">Open flasher</a>
-              <a href="https://wrait8.github.io/WFlasher/" target="_blank" class="btn btn--ghost btn--sm">Full version</a>
+              <a href="https://wrait8.github.io/WFlasher/" target="_blank" class="btn btn--primary btn--sm notch-sm">Open flasher</a>
             </div>
           </div>
 
@@ -707,7 +656,7 @@
             <h3>CLI Tool</h3>
             <p>Use the built‑in <code>Serial.py</code> from the <code>/Serial</code> folder. Interactive or direct mode.</p>
             <div class="foot">
-              <a href="https://github.com/wrait8/SubRabbit/blob/main/Serial/Serial.py" target="_blank" class="btn btn--ghost btn--sm"><i class="ti ti-file-code"></i> View script</a>
+              <a href="https://github.com/wrait8/SubRabbit/blob/main/Serial/Serial.py" target="_blank" class="btn btn--ghost btn--sm notch-sm"><i class="ti ti-file-code"></i> View script</a>
             </div>
           </div>
 
@@ -715,8 +664,8 @@
             <h3>Source &amp; IDE</h3>
             <p>Download the source, open <code>SubRabbit.ino</code> in Arduino IDE, and upload to your board.</p>
             <div class="foot">
-              <a href="https://github.com/wrait8/SubRabbit/archive/refs/heads/main.zip" target="_blank" class="btn btn--ghost btn--sm"><i class="ti ti-download"></i> Source .zip</a>
-              <a href="https://github.com/wrait8/SubRabbit" target="_blank" class="btn btn--ghost btn--sm"><i class="ti ti-brand-github"></i> Clone</a>
+              <a href="https://github.com/wrait8/SubRabbit/archive/refs/heads/main.zip" target="_blank" class="btn btn--ghost btn--sm notch-sm"><i class="ti ti-download"></i> Source .zip</a>
+              <a href="https://github.com/wrait8/SubRabbit" target="_blank" class="btn btn--ghost btn--sm notch-sm"><i class="ti ti-brand-github"></i> Clone</a>
             </div>
           </div>
         </div>
@@ -725,8 +674,8 @@
 
     <section class="section" id="hardware">
       <div class="section__inner">
-        <span class="eyebrow"><i class="hn hn-cog"></i>Hardware</span>
-        <h2 class="section__title">PCB &amp; breadboard<span class="accent"></span></h2>
+        <span class="prompt">cat hardware.md<span class="cursor"></span></span>
+        <h2 class="section__title">PCB &amp; breadboard</h2>
         <p class="section__sub">Official PCB, schematics, Gerber, and BOM — plus breadboard wiring for ESP32 + CC1101.</p>
         <div class="hardware-grid">
           <div class="hardware-card">
@@ -765,24 +714,22 @@
     const width = container.clientWidth;
     const height = container.clientHeight || 300;
 
-    // ── Detect mobile ──
     const isMobile = window.innerWidth <= 800;
     const isSmallPhone = window.innerWidth <= 480;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0b0c0e);
+    scene.background = new THREE.Color(0x0a0b0d);
 
     const camera = new THREE.PerspectiveCamera(25, width / height, 0.1, 1000);
     camera.position.set(0, 8.8, 0.1);
     camera.lookAt(0, 2, 0);
 
-    const renderer = new THREE.WebGLRenderer({ 
+    const renderer = new THREE.WebGLRenderer({
       antialias: !isMobile,
       powerPreference: isMobile ? "low-power" : "high-performance"
     });
     renderer.setSize(width, height);
-    
-    // ── Lower pixel ratio on mobile ──
+
     if (isSmallPhone) {
       renderer.setPixelRatio(1.2);
     } else if (isMobile) {
@@ -790,14 +737,10 @@
     } else {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     }
-    
+
     renderer.shadowMap.enabled = true;
-    if (isMobile) {
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      renderer.shadowMap.bias = 0.0001;
-    } else {
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    }
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    if (isMobile) renderer.shadowMap.bias = 0.0001;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
@@ -851,12 +794,10 @@
     topLight.position.set(0, 10, 0);
     scene.add(topLight);
 
-    const hemiLight = new THREE.HemisphereLight(0x6effe0, 0x0b0c0e, isMobile ? 0.2 : 0.3);
+    const hemiLight = new THREE.HemisphereLight(0x6effe0, 0x0a0b0d, isMobile ? 0.2 : 0.3);
     scene.add(hemiLight);
 
     const loader = new GLTFLoader();
-
-    // ── UPDATED MODEL PATH ──
     const modelPath = 'Model/PCB.glb';
 
     const loadingDiv = document.createElement('div');
@@ -871,6 +812,7 @@
       pointer-events: none;
       text-align: center;
       line-height: 1.6;
+      z-index: 2;
     `;
     loadingDiv.textContent = 'Loading…';
     container.appendChild(loadingDiv);
@@ -960,7 +902,6 @@
       });
     });
 
-    // ── Fetch GitHub data (stars, forks, latest release) ──
     async function fetchGitHubData() {
       const starsEl = document.getElementById('stars-count');
       const forksEl = document.getElementById('forks-count');
@@ -969,9 +910,8 @@
       const releaseVersionEl = document.getElementById('release-version');
       const releaseMetaEl = document.getElementById('release-meta');
       const downloadLink = document.getElementById('download-link');
-      
+
       try {
-        // Fetch repo stats
         const repoResponse = await fetch('https://api.github.com/repos/wrait8/SubRabbit');
         if (repoResponse.ok) {
           const data = await repoResponse.json();
@@ -981,7 +921,6 @@
           forksEl.classList.remove('loading');
         }
 
-        // Fetch latest release
         const releaseResponse = await fetch('https://api.github.com/repos/wrait8/SubRabbit/releases/latest');
         if (releaseResponse.ok) {
           const release = await releaseResponse.json();
@@ -989,7 +928,7 @@
           const published = new Date(release.published_at);
           const now = new Date();
           const diffDays = Math.floor((now - published) / (1000 * 60 * 60 * 24));
-          
+
           let timeAgo;
           if (diffDays === 0) timeAgo = 'Today';
           else if (diffDays === 1) timeAgo = 'Yesterday';
@@ -998,7 +937,7 @@
           else if (diffDays < 30) timeAgo = `${Math.floor(diffDays / 7)}w ago`;
           else if (diffDays < 60) timeAgo = '1mo ago';
           else timeAgo = `${Math.floor(diffDays / 30)}mo ago`;
-          
+
           versionEl.textContent = tag;
           versionEl.classList.remove('loading');
           navVersionEl.textContent = tag;
@@ -1037,11 +976,11 @@
     }
     animate();
 
-    renderer.domElement.addEventListener('pointerdown', () => { 
-      controls.autoRotate = false; 
+    renderer.domElement.addEventListener('pointerdown', () => {
+      controls.autoRotate = false;
     });
-    renderer.domElement.addEventListener('pointerup', () => { 
-      setTimeout(() => { controls.autoRotate = true; }, 3000); 
+    renderer.domElement.addEventListener('pointerup', () => {
+      setTimeout(() => { controls.autoRotate = true; }, 3000);
     });
   </script>
 </body>
