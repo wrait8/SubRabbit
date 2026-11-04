@@ -1,987 +1,463 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="SubRabbit — sub‑1 GHz Swiss Army knife. Sniff, record, replay, and brute‑force signals with ESP32 and CC1101." />
-  <title>SubRabbit · wrait8</title>
-  <meta name="theme-color" content="#0a0b0d" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SubRabbit — sub-1 GHz Swiss Army knife</title>
+<meta name="description" content="SubRabbit — an ESP32 + CC1101 tool for the sub-1 GHz ISM bands: sniff, record, and replay your own RF devices.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<style>
+  :root{
+    --bg:#101010; --panel:#141414; --grid:#1e1e1e; --line:#2a2a2a;
+    --text:#f2f2f2; --dim:#808080; --dim2:#4d4d4d;
+    --accent:#e6e6e6; --accent-dim:rgba(230,230,230,.12);
+    --warn:#ff5a3c;
+  }
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@hackernoon/pixel-icon-library/fonts/iconfont.css" />
+  *{ box-sizing:border-box; }
+  html{ background:var(--bg); color-scheme:dark; scroll-padding-top:env(safe-area-inset-top,0px); }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:"JetBrains Mono", ui-monospace, "Courier New", monospace;
+    -webkit-font-smoothing:antialiased;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+    transition:background .25s ease, color .25s ease;
+  }
+  a{ color:inherit; }
+  .wrap{ max-width:900px; margin:0 auto; padding:0 20px; }
 
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-      }
-    }
-  </script>
+  /* ---- hero ---- */
+  .hero{ padding:56px 0 40px; border-bottom:1px solid var(--line); }
+  .hero-grid{ display:grid; grid-template-columns:1.15fr .85fr; gap:40px; align-items:center; }
+  .wordmark{
+    font-size:clamp(40px,8.5vw,84px); font-weight:800; line-height:.95; letter-spacing:-.01em;
+    margin:0 0 14px; color:var(--text);
+  }
+  .wordmark span{ color:var(--accent); }
+  h1{ font-size:14px; font-weight:700; color:var(--accent); margin:0 0 18px; letter-spacing:.08em; text-transform:uppercase; }
 
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
+  .viewer{ aspect-ratio:4/3; border:1px solid var(--line); background:var(--panel); position:relative; overflow:hidden; }
+  .viewer canvas{ display:block; }
+  .viewer .hint{
+    position:absolute; right:10px; bottom:8px; font-size:11px; color:var(--dim2);
+    background:rgba(0,0,0,.5); padding:3px 8px; letter-spacing:.03em; pointer-events:none;
+  }
+  .viewer .loading{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:12px; color:var(--dim2); letter-spacing:.03em; pointer-events:none;
+  }
+  @media (max-width:760px){
+    .hero-grid{ grid-template-columns:1fr; gap:26px; }
+    .viewer{ order:-1; aspect-ratio:16/10; }
+  }
+  .pitch{ font-size:17px; line-height:1.55; max-width:62ch; color:var(--text); margin:0 0 26px; }
+  .pitch b{ color:var(--text); font-weight:700; }
 
-    :root {
-      --bg: #0a0b0d;
-      --bg-alt: #0d0f12;
-      --surface: rgba(20, 23, 26, 0.65);
-      --surface-hover: rgba(26, 30, 34, 0.85);
-      --border: rgba(255,255,255,0.07);
-      --border-hover: rgba(110,255,224,0.28);
-      --text: #f0f5f5;
-      --text-muted: rgba(210,222,224,0.55);
-      --text-dim: rgba(210,222,224,0.32);
-      --mint: #6effe0;
-      --mint-soft: rgba(110,255,224,0.5);
-      --amber: #ff9a68;
-      --mono: 'Space Mono', monospace;
-      --sans: 'Space Grotesk', sans-serif;
-    }
+  .cta{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:30px; }
+  .btn{
+    display:inline-block; padding:10px 16px; font:inherit; font-size:13px; font-weight:700;
+    text-decoration:none; border:1px solid var(--line); letter-spacing:.03em; cursor:pointer;
+  }
+  .btn.primary{ background:var(--accent); color:#1a0f00; border-color:var(--accent); }
+  .btn.ghost{ background:transparent; color:var(--text); }
+  .btn.ghost:hover{ border-color:var(--accent); color:var(--accent); }
 
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
-    }
+  /* ---- section tabs ---- */
+  .modes{ display:flex; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:4; overflow-x:auto; }
+  .modes a{
+    padding:12px 18px; font-size:12.5px; font-weight:700; letter-spacing:.04em; text-decoration:none;
+    color:var(--dim); border-right:1px solid var(--line); white-space:nowrap;
+  }
+  .modes a:hover{ color:var(--text); }
+  .modes a.on{ color:var(--accent); box-shadow:inset 0 -2px 0 var(--accent); }
 
-    html { scroll-behavior: smooth; }
+  /* ---- feature sections ---- */
+  section.mode{ padding:44px 0; border-bottom:1px solid var(--line); scroll-margin-top:56px; }
+  section.mode .tag{ font-size:12px; color:var(--dim2); margin-bottom:6px; }
+  section.mode h2{ font-size:22px; margin:0 0 14px; font-weight:700; }
+  section.mode p{ font-size:14.5px; line-height:1.7; color:var(--dim); max-width:64ch; margin:0 0 20px; }
+  section.mode p b{ color:var(--text); font-weight:600; }
+  section.mode p code{ font-size:13px; background:var(--panel); border:1px solid var(--line); padding:1px 6px; color:var(--accent); }
+  .specs{ border-top:1px solid var(--line); }
+  .specs div{ display:flex; gap:18px; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px; }
+  .specs dt{ flex:0 0 120px; color:var(--dim2); font-weight:700; }
+  .specs dd{ margin:0; color:var(--text); }
 
-    body {
-      background: var(--bg);
-      min-height: 100vh;
-      font-family: var(--sans);
-      color: var(--text);
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-    }
+  /* ---- flash steps (reuses the .specs look, numbered instead of labelled) ---- */
+  .steps{ border-top:1px solid var(--line); counter-reset:step; }
+  .steps > div{ display:flex; gap:16px; padding:14px 0; border-bottom:1px solid var(--line); }
+  .steps > div::before{
+    counter-increment:step; content:counter(step); flex:0 0 22px; height:22px; text-align:center; line-height:20px;
+    font-size:12px; font-weight:700; color:var(--accent); border:1px solid var(--line);
+  }
+  .steps h3{ margin:0 0 3px; font-size:14px; font-weight:700; }
+  .steps p{ margin:0; font-size:13.5px; line-height:1.6; color:var(--dim); }
+  .steps p code{ font-size:12.5px; background:var(--panel); border:1px solid var(--line); padding:1px 6px; color:var(--accent); }
+  .steps a{ color:var(--accent); text-decoration:underline; text-underline-offset:3px; }
 
-    ::selection { background: var(--mint); color: #061013; }
+  /* ---- warning ---- */
+  .warn{ padding:40px 0; border-bottom:1px solid var(--line); }
+  .warn .box{ border:1px solid var(--warn); padding:18px 20px; }
+  .warn .box .hd{ color:var(--warn); font-weight:700; font-size:13px; margin-bottom:10px; }
+  .warn .box p{ margin:0 0 10px; font-size:13.5px; line-height:1.7; color:var(--dim); }
+  .warn .box p:last-child{ margin-bottom:0; }
+  .warn .box b{ color:var(--text); font-weight:700; }
 
-    a:focus-visible, button:focus-visible, .btn:focus-visible {
-      outline: 1.5px solid var(--mint);
-      outline-offset: 3px;
-    }
+  /* ---- footer ---- */
+  footer{ padding:40px 0 60px; }
+  footer .cmd{ background:var(--panel); border:1px solid var(--line); padding:16px 18px; font-size:13px; line-height:1.9; margin-bottom:24px; overflow-x:auto; }
+  footer .cmd .c{ color:var(--dim2); }
+  footer .cmd .p{ color:var(--accent); }
+  footer .meta{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:12px; color:var(--dim2); }
+  footer .meta a{ color:var(--dim2); text-decoration:underline; text-underline-offset:3px; }
+  footer .meta a:hover{ color:var(--accent); }
+  footer .meta .release{ color:var(--dim2); }
+  footer .meta .release .ok{ color:var(--accent); }
 
-    .page-wrapper {
-      position: relative;
-      min-height: 100vh;
-      background: var(--bg-alt);
-      overflow: hidden;
-    }
-
-    .page-bg {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: url('https://wrait8.github.io/Images/bg%20colors%20effect.png') center/cover no-repeat;
-      opacity: 0.5;
-      mix-blend-mode: screen;
-      pointer-events: none;
-      z-index: 0;
-    }
-    .page-bg::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse at 30% 50%, rgba(255,255,255,0.07) 0%, transparent 60%),
-        radial-gradient(ellipse at 70% 50%, rgba(200,200,255,0.05) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 80%, rgba(255,255,255,0.04) 0%, transparent 40%);
-      pointer-events: none;
-    }
-    /* fine scanline texture — CRT/oscilloscope feel, matches an RF instrument */
-    .page-scanlines {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(255,255,255,0.018) 0px,
-        rgba(255,255,255,0.018) 1px,
-        transparent 1px,
-        transparent 3px
-      );
-      opacity: 0.5;
-    }
-    .page-wrapper::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 1;
-      backdrop-filter: blur(0.5px);
-      pointer-events: none;
-    }
-
-    a { color: var(--mint); text-decoration: none; transition: color 0.2s; }
-    a:hover { color: #a0fff0; }
-
-    .nav, .hero, .section, .footer { position: relative; z-index: 2; }
-
-    /* ── shape language: a clipped corner, echoing a PCB test-pad / connector edge ── */
-    .notch {
-      clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
-    }
-    .notch-sm {
-      clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-    }
-
-    /* ── terminal-style section markers, in place of a generic tracked-out eyebrow ── */
-    .prompt {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-family: var(--mono);
-      font-size: 0.82rem;
-      color: var(--mint);
-      font-weight: 400;
-    }
-    .prompt::before { content: '$'; color: var(--text-dim); }
-    .prompt .cursor {
-      display: inline-block;
-      width: 7px; height: 1rem;
-      background: var(--mint);
-      animation: blink 1.1s steps(1) infinite;
-    }
-    @keyframes blink { 50% { opacity: 0; } }
-
-    .nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(10, 11, 13, 0.88);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      padding: 0.6rem 1.5rem;
-    }
-    .nav__inner {
-      max-width: 1300px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-    }
-    .nav__brand {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-family: var(--mono);
-      font-weight: 700;
-      font-size: 1.25rem;
-      color: #fff;
-      letter-spacing: 0.01em;
-    }
-    .nav__brand em { font-style: normal; color: var(--mint); }
-    .nav__badge {
-      background: rgba(110,255,224,0.1);
-      padding: 0.15rem 0.6rem;
-      font-size: 0.68rem;
-      font-weight: 500;
-      color: var(--mint);
-      border: 1px solid rgba(110,255,224,0.18);
-      font-family: var(--mono);
-    }
-    .nav__links {
-      display: flex;
-      gap: 2rem;
-      font-size: 0.9rem;
-      font-weight: 500;
-      flex-wrap: wrap;
-    }
-    .nav__links a {
-      color: rgba(220,230,235,0.5);
-      border-bottom: 1px solid transparent;
-      padding-bottom: 0.2rem;
-      transition: all 0.2s;
-    }
-    .nav__links a:hover { color: #fff; border-bottom-color: var(--border-hover); }
-    .nav__actions { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.55rem 1.3rem;
-      font-weight: 500;
-      font-size: 0.85rem;
-      border: 1px solid transparent;
-      transition: all 0.2s ease;
-      cursor: pointer;
-      font-family: var(--sans);
-    }
-    .btn--ghost {
-      background: rgba(255,255,255,0.02);
-      color: rgba(220,230,235,0.65);
-      border-color: var(--border);
-    }
-    .btn--ghost:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.15); }
-    .btn--primary {
-      background: var(--mint);
-      color: #06181a;
-      border-color: var(--mint);
-      font-weight: 600;
-    }
-    .btn--primary:hover { background: #8affea; box-shadow: 0 0 24px rgba(110,255,224,0.25); }
-    .btn--amber {
-      background: var(--amber);
-      color: #21100a;
-      border-color: var(--amber);
-      font-weight: 600;
-    }
-    .btn--amber:hover { background: #ffb28c; box-shadow: 0 0 24px rgba(255,154,104,0.25); }
-    .btn--sm { padding: 0.32rem 1rem; font-size: 0.8rem; }
-    .nav__burger {
-      display: none;
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 1.6rem;
-      cursor: pointer;
-      padding: 0.2rem 0.4rem;
-      line-height: 1;
-      align-self: center;
-    }
-    .nav__burger i { pointer-events: none; }
-
-    .hero {
-      position: relative;
-      min-height: 88vh;
-      display: flex;
-      align-items: center;
-      padding: 2rem 1.5rem;
-    }
-    .hero__inner {
-      max-width: 1300px;
-      margin: 0 auto;
-      width: 100%;
-      display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 3rem;
-      align-items: center;
-    }
-    .hero__copy { display: flex; flex-direction: column; gap: 1.1rem; }
-    .hero__boot {
-      font-family: var(--mono);
-      font-size: 0.85rem;
-      color: var(--text-dim);
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .hero__boot .go { color: var(--mint); }
-    .hero__boot .cursor {
-      display: inline-block;
-      width: 7px; height: 1rem;
-      background: var(--mint);
-      animation: blink 1.1s steps(1) infinite;
-    }
-    .hero__title {
-      font-family: var(--mono);
-      font-size: clamp(2.6rem, 7vw, 4.4rem);
-      font-weight: 700;
-      line-height: 1.08;
-      color: #fff;
-      letter-spacing: -0.01em;
-    }
-    .hero__title span { display: block; }
-    .hero__title .l2 {
-      color: var(--text-muted);
-      font-size: 0.62em;
-      font-weight: 400;
-      margin-top: 0.35rem;
-      letter-spacing: 0;
-    }
-    .hero__sub {
-      font-size: 1.1rem;
-      color: rgba(200,212,215,0.68);
-      max-width: 480px;
-      line-height: 1.6;
-      font-weight: 300;
-    }
-    .hero__cta { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 0.4rem; }
-    .hero__stats {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2rem;
-      margin-top: 1.2rem;
-      padding-top: 1.2rem;
-      border-top: 1px solid var(--border);
-    }
-    .stat { display: flex; align-items: center; gap: 0.6rem; }
-    .stat__icon { font-size: 1.2rem; color: rgba(200,210,215,0.25); }
-    .stat__v { font-weight: 600; color: #fff; font-family: var(--mono); min-width: 1.5rem; }
-    .stat__l { font-size: 0.75rem; color: var(--text-dim); margin-left: 0.2rem; }
-    .stat__v.loading { opacity: 0.3; animation: pulse 1s ease-in-out infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
-
-    .hero__visual {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      aspect-ratio: 4/3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 280px;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.3s ease;
-    }
-    .hero__visual:hover { border-color: var(--border-hover); }
-    .hero__visual::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(110,255,224,0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(110,255,224,0.05) 1px, transparent 1px);
-      background-size: 28px 28px;
-      pointer-events: none;
-      z-index: 0;
-    }
-    #hero-viewer { width: 100%; height: 100%; display: block; position: relative; z-index: 1; }
-    .viewer__hint {
-      position: absolute;
-      bottom: 12px; right: 16px;
-      font-family: var(--mono);
-      font-size: 0.68rem;
-      color: rgba(200,210,215,0.3);
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      background: rgba(0,0,0,0.5);
-      padding: 0.2rem 0.7rem;
-      backdrop-filter: blur(4px);
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    .section {
-      padding: 4.5rem 1.5rem;
-      border-top: 1px solid rgba(255,255,255,0.03);
-    }
-    .section--alt { background: rgba(255,255,255,0.008); }
-    .section__inner { max-width: 1200px; margin: 0 auto; }
-    .section__title {
-      font-family: var(--mono);
-      font-size: clamp(1.9rem, 4.5vw, 2.9rem);
-      font-weight: 700;
-      color: #fff;
-      margin: 0.7rem 0 0.5rem;
-      line-height: 1.2;
-    }
-    .section__sub {
-      font-size: 1.02rem;
-      color: var(--text-muted);
-      max-width: 560px;
-      margin-bottom: 2.2rem;
-      font-weight: 300;
-      line-height: 1.55;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 1.25rem;
-      margin: 1.5rem 0;
-    }
-    .card {
-      background: var(--surface);
-      backdrop-filter: blur(4px);
-      border: 1px solid var(--border);
-      padding: 1.7rem 1.5rem;
-      transition: border-color 0.25s ease, background 0.25s ease;
-      cursor: default;
-      position: relative;
-    }
-    .card:hover { border-color: var(--border-hover); background: var(--surface-hover); }
-    .card--warn:hover { border-color: rgba(255,154,104,0.3); }
-    .card__icon { font-size: 1.7rem; color: var(--mint); opacity: 0.7; margin-bottom: 0.6rem; }
-    .card--warn .card__icon { color: var(--amber); }
-    .card__title { font-weight: 600; color: #fff; font-size: 1.08rem; margin-bottom: 0.35rem; }
-    .card__desc { font-size: 0.94rem; color: var(--text-muted); line-height: 1.55; font-weight: 300; }
-    .card__desc code {
-      font-family: var(--mono);
-      font-size: 0.82rem;
-      background: rgba(255,255,255,0.05);
-      padding: 0.05rem 0.4rem;
-      color: var(--mint);
-    }
-
-    .flash-options {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1.25rem;
-      margin: 2rem 0;
-    }
-    .flash-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 1.7rem 1.5rem;
-      transition: border-color 0.25s ease, background 0.25s ease;
-      display: flex;
-      flex-direction: column;
-      cursor: default;
-    }
-    .flash-card:hover { border-color: var(--border-hover); background: var(--surface-hover); }
-    .flash-card h3 { font-family: var(--mono); font-size: 1.05rem; color: #fff; margin-bottom: 0.35rem; }
-    .flash-card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.55; flex: 1; font-weight: 300; }
-    .flash-card p code {
-      font-family: var(--mono);
-      font-size: 0.8rem;
-      background: rgba(255,255,255,0.05);
-      padding: 0.05rem 0.4rem;
-      color: var(--mint);
-    }
-    .flash-card .foot { margin-top: 1.1rem; display: flex; gap: 0.6rem; flex-wrap: wrap; }
-
-    .release-banner {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 1.2rem 1.8rem;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      transition: border-color 0.3s ease;
-    }
-    .release-banner:hover { border-color: var(--border-hover); }
-    .release-banner .label { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); }
-    .release-banner .version { font-family: var(--mono); font-size: 1.4rem; font-weight: 600; color: #fff; }
-    .release-banner .meta { font-size: 0.8rem; color: var(--text-muted); }
-    .release-banner .meta span { color: var(--mint); }
-
-    .hardware-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.25rem;
-      margin-top: 1.5rem;
-    }
-    .hardware-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 1.5rem;
-      transition: border-color 0.25s ease, background 0.25s ease;
-      cursor: default;
-    }
-    .hardware-card:hover { border-color: var(--border-hover); background: var(--surface-hover); }
-    .hardware-card h3 { font-family: var(--mono); font-size: 1.05rem; color: #fff; margin-bottom: 0.4rem; }
-    .hardware-card p { color: var(--text-muted); font-size: 0.9rem; font-weight: 300; line-height: 1.5; }
-    .hardware-card p code {
-      font-family: var(--mono);
-      font-size: 0.8rem;
-      background: rgba(255,255,255,0.05);
-      padding: 0.05rem 0.4rem;
-      color: var(--mint);
-    }
-
-    .footer {
-      border-top: 1px solid rgba(255,255,255,0.03);
-      padding: 2rem 1.5rem 1.5rem;
-      text-align: center;
-      font-size: 0.8rem;
-      width: 100%;
-    }
-    .footer__inner { max-width: 1300px; margin: 0 auto; }
-    .footer__links { display: flex; justify-content: center; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1rem; align-items: center; }
-    .footer__links a { color: rgba(200,210,215,0.28); transition: color 0.2s; display: inline-flex; align-items: center; gap: 0.4rem; }
-    .footer__links a:hover { color: #fff; }
-    .footer__links a i { font-size: 1rem; }
-    .footer p { color: var(--text-dim); font-family: var(--mono); font-size: 0.75rem; }
-    .footer p a { color: rgba(200,210,215,0.32); }
-    .footer p a:hover { color: #fff; }
-
-    /* ── Mobile ── */
-    @media (max-width: 800px) {
-      .hero__inner { grid-template-columns: 1fr; gap: 2rem; }
-      .hero__cta { justify-content: flex-start; }
-      .hero__stats { gap: 0.8rem; justify-content: flex-start; padding-top: 0.8rem; margin-top: 0.8rem; }
-
-      .nav__actions .btn--ghost { display: none; }
-      .nav__burger { display: block; }
-      .nav__links {
-        display: none;
-        width: 100%;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.8rem;
-        padding: 1rem 0;
-        border-top: 1px solid var(--border);
-        margin-top: 0.6rem;
-        order: 3;
-      }
-      .nav__links.open { display: flex; }
-      .nav__inner { flex-wrap: wrap; justify-content: space-between; }
-      .nav__brand { order: 1; }
-      .nav__actions { order: 2; }
-      .nav__links { order: 3; }
-
-      .hero__cta .btn { font-size: 1rem; padding: 0.7rem 1.8rem; min-width: 140px; justify-content: center; }
-      .stat { flex-direction: row; align-items: center; gap: 0.3rem; font-size: 0.85rem; }
-      .stat__icon { font-size: 0.9rem; }
-      .stat__v { font-size: 0.9rem; }
-      .stat__l { font-size: 0.65rem; margin-left: 0.1rem; }
-
-      .hero__visual { min-height: 200px; }
-      .release-banner { flex-direction: column; text-align: center; gap: 0.8rem; }
-      .flash-options { grid-template-columns: 1fr; }
-      .hardware-grid { grid-template-columns: 1fr; }
-
-      .footer { padding: 1.5rem 0.8rem; }
-      .footer__links { gap: 0.8rem; width: 100%; max-width: 100%; }
-      .footer__links a { font-size: 0.8rem; }
-    }
-
-    @media (max-width: 480px) {
-      .nav { padding: 0.4rem 0.8rem; }
-      .nav__brand { font-size: 1rem; }
-      .hero__cta .btn { font-size: 0.9rem; padding: 0.6rem 1.4rem; min-width: 120px; }
-      .hero__stats { gap: 0.5rem; }
-      .stat { gap: 0.2rem; font-size: 0.75rem; }
-      .stat__icon { font-size: 0.8rem; }
-      .stat__v { font-size: 0.8rem; }
-      .stat__l { font-size: 0.6rem; }
-      .section { padding: 2.2rem 0.8rem; }
-      .hero { padding: 1rem 0.8rem; min-height: 80vh; }
-      .hero__visual { min-height: 180px; }
-      .hero__title { font-size: clamp(2rem, 10vw, 2.8rem); }
-      .hero__sub { font-size: 0.95rem; }
-      .card, .flash-card, .hardware-card { padding: 1.2rem 1rem; }
-      .footer { padding: 1.5rem 0.5rem; }
-      .footer__links { gap: 0.6rem; font-size: 0.75rem; }
-      .footer__links a { font-size: 0.7rem; }
-    }
-  </style>
+  @media (max-width:560px){
+    .hero{ padding:40px 0 30px; }
+    .pitch{ font-size:15.5px; }
+    .specs dt{ flex:0 0 96px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .cursor{ animation:none; opacity:1; }
+  }
+</style>
 </head>
 <body>
-<div class="page-wrapper">
-  <div class="page-bg"></div>
-  <div class="page-scanlines"></div>
 
-  <header class="nav">
-    <div class="nav__inner">
-      <a href="#" class="nav__brand">
-        <span class="nav__logo">SUB<em>RABBIT</em></span>
-        <span class="nav__badge notch-sm" id="nav-version">v0.0.1</span>
-      </a>
-      <nav class="nav__links" id="nav-links">
-        <a href="#features">Features</a>
-        <a href="#flash">Flash</a>
-        <a href="#hardware">Hardware</a>
-        <a href="https://github.com/wrait8/SubRabbit/wiki" target="_blank">Wiki</a>
-      </nav>
-      <div class="nav__actions">
-        <a class="btn btn--ghost btn--sm notch-sm" href="https://github.com/wrait8/SubRabbit" target="_blank"><i class="hn hn-github"></i> GitHub</a>
-        <a class="btn btn--ghost btn--sm notch-sm" href="https://github.com/wrait8/SubRabbit/releases" target="_blank"><i class="hn hn-download"></i> Releases</a>
-        <button class="nav__burger" id="nav-burger" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+<main class="wrap">
+
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="wordmark">SUB<span>RABBIT</span></div>
+        <h1>sub-1 ghz toolkit</h1>
+        <p class="pitch">
+          Turns an <b>ESP32 + CC1101</b> into a sub-1 GHz Swiss Army knife: a <b>packet sniffer</b> with
+          live RSSI, a <b>frequency analyzer</b> for finding active channels, <b>raw IQ</b> and
+          <b>fixed-code</b> capture/replay for your own remotes and sensors, and configurable
+          <b>2-FSK / GFSK / ASK-OOK / 4-FSK / MSK</b> radio parameters.
+        </p>
+        <p class="pitch" style="font-size:13.5px; color:var(--dim)">
+          Needs an ESP32 board wired to a <b>CC1101</b> module (breadboard or the project's own PCB), and
+          either the web flasher or the Arduino IDE to load the firmware.
+        </p>
+
+        <div class="cta">
+          <a class="btn primary" href="https://wrait8.github.io/WFlasher/">FLASH FIRMWARE</a>
+          <a class="btn ghost" href="https://github.com/wrait8/SubRabbit">VIEW SOURCE</a>
+        </div>
+      </div>
+
+      <div class="viewer">
+        <div id="pcbViewer" style="width:100%; height:100%;"></div>
+        <div class="loading" id="pcbLoading">loading model…</div>
+        <div class="hint">drag to rotate</div>
       </div>
     </div>
-  </header>
+  </section>
 
-  <main>
+  <nav class="modes" id="modeNav">
+    <a href="#sniff" class="on">SNIFF</a>
+    <a href="#capture">CAPTURE</a>
+    <a href="#radio">RADIO</a>
+    <a href="#jam">JAM · BRUTE</a>
+    <a href="#flash">FLASH</a>
+    <a href="#hardware">HARDWARE</a>
+  </nav>
 
-    <section class="hero">
-      <div class="hero__inner">
-        <div class="hero__copy">
-          <div class="hero__boot">root@esp32:~$ <span class="go">./subrabbit --scan</span><span class="cursor"></span></div>
-          <h1 class="hero__title"><span>Sub‑1 GHz</span><span class="l2">Swiss army knife</span></h1>
-          <p class="hero__sub">Sniff, record, replay, and brute‑force signals. Wide frequency coverage, multiple modulations, and a full packet engine on ESP32 + CC1101.</p>
-          <div class="hero__cta">
-            <a href="https://github.com/wrait8/SubRabbit/wiki" target="_blank" class="btn btn--primary notch-sm">Read the wiki</a>
-            <a href="https://github.com/wrait8/SubRabbit" class="btn btn--ghost notch-sm" target="_blank"><i class="hn hn-github"></i> View source</a>
-          </div>
-          <div class="hero__stats">
-            <div class="stat"><i class="hn hn-star stat__icon"></i><div class="stat__body"><span class="stat__v loading" id="stars-count">—</span><span class="stat__l">stars</span></div></div>
-            <div class="stat"><i class="hn hn-fork stat__icon"></i><div class="stat__body"><span class="stat__v loading" id="forks-count">—</span><span class="stat__l">forks</span></div></div>
-            <div class="stat"><i class="hn hn-tag stat__icon"></i><div class="stat__body"><span class="stat__v" id="version-stat">—</span><span class="stat__l">latest</span></div></div>
-            <div class="stat"><i class="hn hn-check-circle stat__icon"></i><div class="stat__body"><span class="stat__v">MIT</span><span class="stat__l">license</span></div></div>
-          </div>
-        </div>
-        <div class="hero__visual notch">
-          <div id="hero-viewer"></div>
-          <span class="viewer__hint"><i class="ti ti-hand-move"></i> drag to rotate</span>
-        </div>
+  <section class="mode" id="sniff">
+    <div class="tag">firmware / sniff</div>
+    <h2>Packet sniffer &amp; frequency analyzer</h2>
+    <p>
+      Point it at a channel and watch RF packets come in with live <b>RSSI</b> and link-quality
+      readout, or sweep a band to find which channels actually have traffic on them before you
+      commit to listening on one. Both run straight from the serial console — no companion app
+      needed.
+    </p>
+    <dl class="specs">
+      <div><dt>sniffer</dt><dd>live packet log with RSSI and link quality</dd></div>
+      <div><dt>analyzer</dt><dd>channel-activity sweep across the sub-1 GHz range</dd></div>
+      <div><dt>console</dt><dd>plain serial commands — USB, or the CLI/web tools below</dd></div>
+    </dl>
+  </section>
+
+  <section class="mode" id="capture">
+    <div class="tag">firmware / capture</div>
+    <h2>Record &amp; replay</h2>
+    <p>
+      Two capture paths, depending on what you're working with. <code>recraw</code> /
+      <code>playraw</code> grab the raw RF samples bit for bit — useful while you're still
+      figuring out what a signal is. Once you know a transmitter sends a simple fixed code (most
+      remotes, many sensors), <code>recsig</code> / <code>playsig</code> capture and reproduce
+      just that code.
+    </p>
+    <dl class="specs">
+      <div><dt>raw</dt><dd><code>recraw</code> / <code>playraw</code> — full-fidelity sample capture</dd></div>
+      <div><dt>fixed-code</dt><dd><code>recsig</code> / <code>playsig</code> — captured code, replayed on demand</dd></div>
+      <div><dt>use on</dt><dd>your own remotes, sensors and test gear</dd></div>
+    </dl>
+  </section>
+
+  <section class="mode" id="radio">
+    <div class="tag">firmware / radio</div>
+    <h2>Radio configuration</h2>
+    <p>
+      The CC1101's radio parameters are exposed directly: pick the modulation that matches what
+      you're working with and tune frequency, data rate and deviation to match.
+    </p>
+    <dl class="specs">
+      <div><dt>modulation</dt><dd>2-FSK · GFSK · ASK/OOK · 4-FSK · MSK</dd></div>
+      <div><dt>range</dt><dd>sub-1 GHz ISM — whatever the antenna and local allocation allow</dd></div>
+      <div><dt>tuned by</dt><dd>frequency, data rate, deviation — set per session</dd></div>
+    </dl>
+  </section>
+
+  <section class="mode" id="jam">
+    <div class="tag">firmware / jam · brute — restricted use</div>
+    <h2>Jamming &amp; brute-force</h2>
+    <p>
+      <code>jam</code> transmits continuously on a channel; <code>brute</code> steps through
+      timing/code space against a receiver. Both are <b>active, transmitting</b> modes — unlike
+      everything above, they put RF energy on air deliberately and can affect other people's
+      equipment. Read the box below before you use either one.
+    </p>
+    <dl class="specs">
+      <div><dt>jam</dt><dd>continuous transmission on a chosen channel</dd></div>
+      <div><dt>brute</dt><dd>timing-based code brute-force against a receiver</dd></div>
+      <div><dt>status</dt><dd>transmit modes — see the notice below before use</dd></div>
+    </dl>
+  </section>
+
+  <section class="mode" id="flash">
+    <div class="tag">get it running</div>
+    <h2>Flash the firmware</h2>
+    <p>Three ways to get SubRabbit onto the board, from quickest to most hands-on.</p>
+    <div class="steps">
+      <div>
+        <h3>Web flasher — no install</h3>
+        <p>Open <a href="https://wrait8.github.io/WFlasher/">wrait8.github.io/WFlasher</a> in Chrome
+        or Edge, plug the board in over USB, pick the firmware and flash straight from the page
+        via Web Serial.</p>
       </div>
-    </section>
-
-    <section class="section" id="features">
-      <div class="section__inner">
-        <span class="prompt">ls features/<span class="cursor"></span></span>
-        <h2 class="section__title">Everything RF, one tool</h2>
-        <p class="section__sub">Packet sniffer, frequency analyzer, raw capture/replay, jamming, brute‑force, and more.</p>
-        <div class="grid">
-          <div class="card"><div class="card__icon"><i class="ti ti-antenna"></i></div><h3 class="card__title">Packet Sniffer</h3><p class="card__desc">Receive and log RF packets with live RSSI monitoring and link quality.</p></div>
-          <div class="card"><div class="card__icon"><i class="ti ti-chart-bar"></i></div><h3 class="card__title">Frequency Analyzer</h3><p class="card__desc">Scan and detect active channels across the Sub‑GHz spectrum.</p></div>
-          <div class="card"><div class="card__icon"><i class="ti ti-device-floppy"></i></div><h3 class="card__title">RAW Capture / Replay</h3><p class="card__desc">Record raw RF samples (<code>recraw</code>) and replay (<code>playraw</code>) with precision.</p></div>
-          <div class="card"><div class="card__icon"><i class="ti ti-repeat"></i></div><h3 class="card__title">Fixed‑Code Replay</h3><p class="card__desc">Capture and replay fixed‑code signals (<code>recsig</code>, <code>playsig</code>) for remotes.</p></div>
-          <div class="card"><div class="card__icon"><i class="ti ti-settings"></i></div><h3 class="card__title">Multi‑Modulation</h3><p class="card__desc">2‑FSK, GFSK, ASK/OOK, 4‑FSK, MSK — full configurable radio parameters.</p></div>
-          <div class="card card--warn"><div class="card__icon"><i class="ti ti-zap"></i></div><h3 class="card__title">Jamming &amp; Brute‑Force</h3><p class="card__desc">Continuous jamming (<code>jam</code>) and timing‑based brute‑force (<code>brute</code>) modes.</p></div>
-        </div>
+      <div>
+        <h3>CLI tool</h3>
+        <p>Run <code>Serial.py</code> from the repo's <code>/Serial</code> folder for an
+        interactive or scripted flash from the command line.</p>
       </div>
-    </section>
-
-    <section class="section section--alt" id="flash">
-      <div class="section__inner">
-        <span class="prompt">./flash --help<span class="cursor"></span></span>
-        <h2 class="section__title">Pick your method</h2>
-        <p class="section__sub">Choose the flashing approach that fits your workflow.</p>
-
-        <div class="release-banner notch">
-          <div>
-            <div class="label">latest release</div>
-            <div class="version" id="release-version">—</div>
-            <div class="meta" id="release-meta">Loading...</div>
-          </div>
-          <div style="display:flex; gap:0.8rem; flex-wrap:wrap;">
-            <a href="https://github.com/wrait8/SubRabbit/releases/latest" target="_blank" class="btn btn--primary btn--sm notch-sm" id="download-link">Download assets</a>
-            <a href="https://github.com/wrait8/SubRabbit/releases" target="_blank" class="btn btn--ghost btn--sm notch-sm">All releases</a>
-          </div>
-        </div>
-
-        <div class="flash-options">
-          <div class="flash-card">
-            <h3>Web Flasher</h3>
-            <p>Real ESP32 protocol via Web Serial — no toolchain needed. Connect, select firmware, flash.</p>
-            <div class="foot">
-              <a href="https://wrait8.github.io/WFlasher/" target="_blank" class="btn btn--primary btn--sm notch-sm">Open flasher</a>
-            </div>
-          </div>
-
-          <div class="flash-card">
-            <h3>CLI Tool</h3>
-            <p>Use the built‑in <code>Serial.py</code> from the <code>/Serial</code> folder. Interactive or direct mode.</p>
-            <div class="foot">
-              <a href="https://github.com/wrait8/SubRabbit/blob/main/Serial/Serial.py" target="_blank" class="btn btn--ghost btn--sm notch-sm"><i class="ti ti-file-code"></i> View script</a>
-            </div>
-          </div>
-
-          <div class="flash-card">
-            <h3>Source &amp; IDE</h3>
-            <p>Download the source, open <code>SubRabbit.ino</code> in Arduino IDE, and upload to your board.</p>
-            <div class="foot">
-              <a href="https://github.com/wrait8/SubRabbit/archive/refs/heads/main.zip" target="_blank" class="btn btn--ghost btn--sm notch-sm"><i class="ti ti-download"></i> Source .zip</a>
-              <a href="https://github.com/wrait8/SubRabbit" target="_blank" class="btn btn--ghost btn--sm notch-sm"><i class="ti ti-brand-github"></i> Clone</a>
-            </div>
-          </div>
-        </div>
+      <div>
+        <h3>Source + Arduino IDE</h3>
+        <p>Clone the repo, open <code>SubRabbit.ino</code> in the Arduino IDE, and upload it
+        yourself — the route to take if you're modifying the firmware.</p>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="section" id="hardware">
-      <div class="section__inner">
-        <span class="prompt">cat hardware.md<span class="cursor"></span></span>
-        <h2 class="section__title">PCB &amp; breadboard</h2>
-        <p class="section__sub">Official PCB, schematics, Gerber, and BOM — plus breadboard wiring for ESP32 + CC1101.</p>
-        <div class="hardware-grid">
-          <div class="hardware-card">
-            <h3>PCB v1</h3>
-            <p>Atmega32u4 + CC1101, USB‑C, SMA antenna. All files in <a href="https://github.com/wrait8/SubRabbit/tree/main/PCB/" target="_blank">PCB/</a>.</p>
-          </div>
-          <div class="hardware-card">
-            <h3>Breadboard</h3>
-            <p>ESP32 + CC1101 module — wiring diagram in the <a href="https://github.com/wrait8/SubRabbit/wiki" target="_blank">Wiki</a>.</p>
-          </div>
-        </div>
-      </div>
-    </section>
+  <section class="mode" id="hardware">
+    <div class="tag">hardware</div>
+    <h2>PCB &amp; breadboard</h2>
+    <p>
+      Build it on the project's own PCB, or wire an ESP32 dev board to a CC1101 module on a
+      breadboard — both are documented in the repo.
+    </p>
+    <dl class="specs">
+      <div><dt>PCB</dt><dd>ESP32 + CC1101, USB, SMA antenna — schematics/Gerber/BOM in <code>/PCB</code></dd></div>
+      <div><dt>breadboard</dt><dd>ESP32 dev board + CC1101 breakout — wiring diagram in the wiki</dd></div>
+    </dl>
+  </section>
 
-  </main>
+  <section class="warn">
+    <div class="box">
+      <div class="hd">read before you transmit</div>
+      <p><b>Most of this firmware receives only</b> — sniffing and capture don't put anything on
+      air. <code>jam</code> and <code>brute</code> are different: they <b>transmit</b>, and radio
+      transmission is regulated by law almost everywhere, not just by etiquette.</p>
+      <p><b>Jamming</b> — deliberately interfering with radio spectrum — is illegal in most
+      countries, full stop, including on license-free ISM bands, regardless of your intent. There
+      isn't a "responsible use" version of continuous jamming against anything other than a
+      shielded test setup you own.</p>
+      <p><b>Brute-forcing</b> a code against a receiver you don't own — a gate, a garage door, a
+      car, an alarm — is unauthorized access in most jurisdictions, separate from any radio-law
+      violation. Use <code>jam</code> and <code>brute</code> only inside a shielded enclosure or
+      against your own equipment that you're explicitly allowed to test.</p>
+      <p>Everything else — sniffing, capture, replay — still only ever acts on your own devices and
+      remotes, or equipment you're otherwise authorized to test. Check your country's radio
+      regulations (FCC Part 15 in the US, ETSI in the EU, or your local equivalent) before you
+      transmit anything.</p>
+    </div>
+  </section>
 
-  <footer class="footer">
-    <div class="footer__inner">
-      <div class="footer__links">
-        <a href="https://github.com/wrait8/SubRabbit" target="_blank"><i class="ti ti-brand-github"></i> GitHub</a>
-        <a href="https://github.com/wrait8/SubRabbit/wiki" target="_blank"><i class="ti ti-book"></i> Wiki</a>
-        <a href="https://github.com/wrait8/SubRabbit/releases" target="_blank"><i class="ti ti-download"></i> Releases</a>
-        <a href="https://github.com/wrait8/SubRabbit/discussions" target="_blank"><i class="ti ti-message"></i> Discussions</a>
-      </div>
-      <p>© 2026 <a href="https://wrait8.github.io" target="_blank">wrait8</a> · SubRabbit — MIT licensed</p>
+  <footer>
+    <div class="cmd">
+      <span class="c">$</span> git clone https://github.com/wrait8/SubRabbit.git<br>
+      <span class="c">$</span> cd SubRabbit &amp;&amp; <span class="p">pio</span> run --target upload<br>
+      <span class="c">#</span> needs an ESP32 + CC1101, wired per /PCB or the wiki
+    </div>
+    <div class="meta">
+      <span>MIT licensed</span>
+      <span class="release" id="releaseMeta">latest release: <span class="ok">—</span></span>
+      <a href="https://github.com/wrait8/SubRabbit">github.com/wrait8/SubRabbit</a>
     </div>
   </footer>
-</div>
 
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+</main>
 
-    const container = document.getElementById('hero-viewer');
-    const width = container.clientWidth;
-    const height = container.clientHeight || 300;
+<script>
+(function(){
+  "use strict";
 
-    const isMobile = window.innerWidth <= 800;
-    const isSmallPhone = window.innerWidth <= 480;
+  /* ---- mode tabs: highlight on scroll ---- */
+  var sections = ["sniff","capture","radio","jam","flash","hardware"].map(function(id){ return document.getElementById(id); });
+  var links = document.querySelectorAll(".modes a");
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      links.forEach(function(a){ a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id); });
+    });
+  }, { rootMargin: "-40% 0px -55% 0px" });
+  sections.forEach(function(s){ if (s) io.observe(s); });
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0b0d);
+  /* ---- latest release tag, in the footer meta line ---- */
+  fetch("https://api.github.com/repos/wrait8/SubRabbit/releases/latest")
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(rel){
+      var el = document.getElementById("releaseMeta");
+      if (!el) return;
+      if (rel && rel.tag_name){
+        el.innerHTML = 'latest release: <span class="ok">' + rel.tag_name + '</span>';
+      } else {
+        el.innerHTML = '<a href="https://github.com/wrait8/SubRabbit/releases">releases</a>';
+      }
+    })
+    .catch(function(){
+      var el = document.getElementById("releaseMeta");
+      if (el) el.innerHTML = '<a href="https://github.com/wrait8/SubRabbit/releases">releases</a>';
+    });
+})();
+</script>
 
-    const camera = new THREE.PerspectiveCamera(25, width / height, 0.1, 1000);
+<script type="module">
+(function(){
+  "use strict";
+  var container = document.getElementById("pcbViewer");
+  var loadingEl = document.getElementById("pcbLoading");
+  if (!container) return;
+
+  import("three").then(function(THREE){
+    import("three/addons/controls/OrbitControls.js").then(function(OC){
+      import("three/addons/loaders/GLTFLoader.js").then(function(GL){
+        start(THREE, OC.OrbitControls, GL.GLTFLoader);
+      });
+    });
+  });
+
+  function start(THREE, OrbitControls, GLTFLoader){
+    var width = container.clientWidth, height = container.clientHeight || 300;
+    var isMobile = window.innerWidth <= 760;
+
+    var scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x101010); // matches --bg, this page has one fixed theme
+
+    var camera = new THREE.PerspectiveCamera(25, width / height, 0.1, 1000);
     camera.position.set(0, 8.8, 0.1);
     camera.lookAt(0, 2, 0);
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: !isMobile,
-      powerPreference: isMobile ? "low-power" : "high-performance"
-    });
+    var renderer = new THREE.WebGLRenderer({ antialias: !isMobile, powerPreference: isMobile ? "low-power" : "high-performance" });
     renderer.setSize(width, height);
-
-    if (isSmallPhone) {
-      renderer.setPixelRatio(1.2);
-    } else if (isMobile) {
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
-    } else {
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    }
-
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    if (isMobile) renderer.shadowMap.bias = 0.0001;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.6 : 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 1.1;
     container.appendChild(renderer.domElement);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
+    var controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.autoRotate = true;
-    controls.autoRotateSpeed = isMobile ? 1.0 : 1.5;
+    controls.autoRotateSpeed = 1.2;
     controls.minDistance = 2;
     controls.maxDistance = 20;
     controls.target.set(0, 2, 0);
-    controls.maxPolarAngle = Math.PI;
-    controls.minPolarAngle = 0;
 
-    const ambient = new THREE.AmbientLight(0x404060, isMobile ? 0.45 : 0.5);
-    scene.add(ambient);
+    // neutral/white-grey lighting throughout -- no colour tint, to match this page's single mono theme
+    scene.add(new THREE.AmbientLight(0x808080, 0.55));
+    var key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(4, 8, 6); scene.add(key);
+    var fill = new THREE.DirectionalLight(0xcfcfcf, 0.6); fill.position.set(-4, 3, -3); scene.add(fill);
+    var rim = new THREE.DirectionalLight(0xaaaaaa, 0.5); rim.position.set(-3, 1, -6); scene.add(rim);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x101010, 0.3));
 
-    const keyLight = new THREE.DirectionalLight(0xffeedd, isMobile ? 2.0 : 2.5);
-    keyLight.position.set(4, 8, 6);
-    keyLight.castShadow = true;
-    if (isMobile) {
-      keyLight.shadow.mapSize.width = 512;
-      keyLight.shadow.mapSize.height = 512;
-    } else {
-      keyLight.shadow.mapSize.width = 1024;
-      keyLight.shadow.mapSize.height = 1024;
-    }
-    keyLight.shadow.camera.near = 0.5;
-    keyLight.shadow.camera.far = 20;
-    keyLight.shadow.camera.left = -5;
-    keyLight.shadow.camera.right = 5;
-    keyLight.shadow.camera.top = 5;
-    keyLight.shadow.camera.bottom = -5;
-    keyLight.shadow.bias = -0.001;
-    scene.add(keyLight);
-
-    const fillLight = new THREE.DirectionalLight(0x6effe0, isMobile ? 0.5 : 0.6);
-    fillLight.position.set(-4, 3, -3);
-    scene.add(fillLight);
-
-    const rimLight = new THREE.DirectionalLight(0x4488ff, isMobile ? 0.4 : 0.5);
-    rimLight.position.set(-3, 1, -6);
-    scene.add(rimLight);
-
-    const bottomLight = new THREE.DirectionalLight(0x6effe0, isMobile ? 0.2 : 0.3);
-    bottomLight.position.set(0, -5, 0);
-    scene.add(bottomLight);
-
-    const topLight = new THREE.DirectionalLight(0xffffff, isMobile ? 0.3 : 0.4);
-    topLight.position.set(0, 10, 0);
-    scene.add(topLight);
-
-    const hemiLight = new THREE.HemisphereLight(0x6effe0, 0x0a0b0d, isMobile ? 0.2 : 0.3);
-    scene.add(hemiLight);
-
-    const loader = new GLTFLoader();
-    const modelPath = 'Model/PCB.glb';
-
-    const loadingDiv = document.createElement('div');
-    loadingDiv.style.cssText = `
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: rgba(200,210,215,0.3);
-      font-family: 'Space Mono', monospace;
-      font-size: 0.8rem;
-      pointer-events: none;
-      text-align: center;
-      line-height: 1.6;
-      z-index: 2;
-    `;
-    loadingDiv.textContent = 'Loading…';
-    container.appendChild(loadingDiv);
-
+    var loader = new GLTFLoader();
     loader.load(
-      modelPath,
-      (gltf) => {
-        loadingDiv.remove();
-        const model = gltf.scene;
-        const box = new THREE.Box3().setFromObject(model);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const scale = 5.0 / maxDim;
+      "Model/PCB.glb",
+      function(gltf){
+        if (loadingEl) loadingEl.remove();
+        var model = gltf.scene;
+        var box = new THREE.Box3().setFromObject(model);
+        var size = box.getSize(new THREE.Vector3());
+        var maxDim = Math.max(size.x, size.y, size.z);
+        var scale = 5.0 / maxDim;
         model.scale.set(scale, scale, scale);
         model.rotation.x = -Math.PI / 2;
-        const newBox = new THREE.Box3().setFromObject(model);
-        const newCenter = newBox.getCenter(new THREE.Vector3());
-        const newMinY = newBox.min.y;
-        model.position.x = -newCenter.x;
-        model.position.z = -newCenter.z;
-        model.position.y = -newMinY + 0.5;
-        model.traverse((node) => {
-          if (node.isMesh && node.material) {
+        var newBox = new THREE.Box3().setFromObject(model);
+        var c = newBox.getCenter(new THREE.Vector3());
+        model.position.x = -c.x; model.position.z = -c.z; model.position.y = -newBox.min.y + 0.5;
+        model.traverse(function(node){
+          if (node.isMesh && node.material){
             node.material.roughness = Math.min(node.material.roughness || 0.5, 0.7);
             node.material.metalness = Math.min(node.material.metalness || 0.3, 0.6);
-            if (isMobile) {
-              node.material.roughness = Math.min(node.material.roughness || 0.5, 0.75);
-              node.material.metalness = Math.min(node.material.metalness || 0.3, 0.5);
-            }
           }
         });
         scene.add(model);
       },
-      (xhr) => {
-        if (xhr.total > 0) {
-          const percent = Math.min(Math.round((xhr.loaded / xhr.total) * 100), 99);
-          loadingDiv.textContent = `Loading… ${percent}%`;
-        }
+      function(xhr){
+        if (loadingEl && xhr.total > 0) loadingEl.textContent = "loading model… " + Math.min(Math.round((xhr.loaded / xhr.total) * 100), 99) + "%";
       },
-      () => {
-        loadingDiv.remove();
-        const group = new THREE.Group();
-        const boardGeo = new THREE.BoxGeometry(2.5, 0.12, 3.8);
-        const boardMat = new THREE.MeshStandardMaterial({ color: 0x1a2a2a, roughness: 0.5, metalness: 0.4 });
-        const board = new THREE.Mesh(boardGeo, boardMat);
-        board.position.set(0, 1.9, 0);
-        group.add(board);
-        const usbGeo = new THREE.BoxGeometry(0.9, 0.15, 0.5);
-        const usbMat = new THREE.MeshStandardMaterial({ color: 0xccaa44, roughness: 0.2, metalness: 0.9 });
-        const usb = new THREE.Mesh(usbGeo, usbMat);
-        usb.position.set(0, 0.08, 0);
-        group.add(usb);
-        const chipGeo = new THREE.BoxGeometry(0.8, 0.06, 0.8);
-        const chipMat = new THREE.MeshStandardMaterial({ color: 0x1a1a2a, roughness: 0.3, metalness: 0.7 });
-        const chip = new THREE.Mesh(chipGeo, chipMat);
-        chip.position.set(0, 2.0, 0.5);
-        group.add(chip);
-        const antGeo = new THREE.CylinderGeometry(0.025, 0.025, 1.2, 6);
-        const antMat = new THREE.MeshStandardMaterial({ color: 0xccddee, metalness: 0.6, roughness: 0.3 });
-        const ant = new THREE.Mesh(antGeo, antMat);
-        ant.position.set(0, 4.7, 0);
-        group.add(ant);
+      function(){
+        // no Model/PCB.glb at this path (or it failed to load) -- fall back to a simple placeholder board/chip/antenna
+        if (loadingEl) loadingEl.remove();
+        var group = new THREE.Group();
+        var boardMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5, metalness: 0.4 });
+        var board = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.12, 3.8), boardMat);
+        board.position.set(0, 1.9, 0); group.add(board);
+        var usbMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.2, metalness: 0.9 });
+        var usb = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.15, 0.5), usbMat);
+        usb.position.set(0, 0.08, 0); group.add(usb);
+        var chipMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.3, metalness: 0.7 });
+        var chip = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.06, 0.8), chipMat);
+        chip.position.set(0, 2.0, 0.5); group.add(chip);
+        var antMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.6, roughness: 0.3 });
+        var ant = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.2, 6), antMat);
+        ant.position.set(0, 4.7, 0); group.add(ant);
         group.position.y = 0.5;
         scene.add(group);
       }
     );
 
-    const burger = document.getElementById('nav-burger');
-    const navLinks = document.getElementById('nav-links');
-
-    burger.addEventListener('click', function(e) {
-      e.stopPropagation();
-      navLinks.classList.toggle('open');
-    });
-
-    document.addEventListener('click', function(e) {
-      const nav = document.querySelector('.nav');
-      if (nav && !nav.contains(e.target)) {
-        navLinks.classList.remove('open');
-      }
-    });
-
-    navLinks.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', function() {
-        navLinks.classList.remove('open');
-      });
-    });
-
-    async function fetchGitHubData() {
-      const starsEl = document.getElementById('stars-count');
-      const forksEl = document.getElementById('forks-count');
-      const versionEl = document.getElementById('version-stat');
-      const navVersionEl = document.getElementById('nav-version');
-      const releaseVersionEl = document.getElementById('release-version');
-      const releaseMetaEl = document.getElementById('release-meta');
-      const downloadLink = document.getElementById('download-link');
-
-      try {
-        const repoResponse = await fetch('https://api.github.com/repos/wrait8/SubRabbit');
-        if (repoResponse.ok) {
-          const data = await repoResponse.json();
-          starsEl.textContent = data.stargazers_count || 0;
-          forksEl.textContent = data.forks_count || 0;
-          starsEl.classList.remove('loading');
-          forksEl.classList.remove('loading');
-        }
-
-        const releaseResponse = await fetch('https://api.github.com/repos/wrait8/SubRabbit/releases/latest');
-        if (releaseResponse.ok) {
-          const release = await releaseResponse.json();
-          const tag = release.tag_name || 'v0.0.1';
-          const published = new Date(release.published_at);
-          const now = new Date();
-          const diffDays = Math.floor((now - published) / (1000 * 60 * 60 * 24));
-
-          let timeAgo;
-          if (diffDays === 0) timeAgo = 'Today';
-          else if (diffDays === 1) timeAgo = 'Yesterday';
-          else if (diffDays < 7) timeAgo = `${diffDays}d ago`;
-          else if (diffDays < 14) timeAgo = '1w ago';
-          else if (diffDays < 30) timeAgo = `${Math.floor(diffDays / 7)}w ago`;
-          else if (diffDays < 60) timeAgo = '1mo ago';
-          else timeAgo = `${Math.floor(diffDays / 30)}mo ago`;
-
-          versionEl.textContent = tag;
-          versionEl.classList.remove('loading');
-          navVersionEl.textContent = tag;
-          releaseVersionEl.textContent = tag;
-          releaseMetaEl.innerHTML = `${timeAgo} · <span>${release.target_commitish || 'main'}</span>`;
-          downloadLink.href = release.html_url || 'https://github.com/wrait8/SubRabbit/releases/latest';
-        }
-      } catch (error) {
-        console.log('GitHub data fetch failed, using fallback');
-        starsEl.textContent = '3';
-        forksEl.textContent = '0';
-        starsEl.classList.remove('loading');
-        forksEl.classList.remove('loading');
-        versionEl.textContent = 'v0.0.1';
-        versionEl.classList.remove('loading');
-        navVersionEl.textContent = 'v0.0.1';
-        releaseVersionEl.textContent = 'v0.0.1';
-        releaseMetaEl.innerHTML = 'Recently · <span>main</span>';
-      }
-    }
-    fetchGitHubData();
-
-    function resize() {
-      const w = container.clientWidth;
-      const h = container.clientHeight || 300;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
+    function resize(){
+      var w = container.clientWidth, h = container.clientHeight || 300;
+      camera.aspect = w / h; camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     }
-    window.addEventListener('resize', resize);
+    window.addEventListener("resize", resize);
 
-    function animate() {
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    }
+    function animate(){ requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
     animate();
 
-    renderer.domElement.addEventListener('pointerdown', () => {
-      controls.autoRotate = false;
-    });
-    renderer.domElement.addEventListener('pointerup', () => {
-      setTimeout(() => { controls.autoRotate = true; }, 3000);
-    });
-  </script>
+    renderer.domElement.addEventListener("pointerdown", function(){ controls.autoRotate = false; });
+    renderer.domElement.addEventListener("pointerup", function(){ setTimeout(function(){ controls.autoRotate = true; }, 3000); });
+  }
+})();
+</script>
 </body>
 </html>
