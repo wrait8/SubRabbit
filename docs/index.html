@@ -56,7 +56,9 @@
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     font-size:12px; color:var(--dim2); letter-spacing:.03em; pointer-events:none;
   }
-  .stats{ display:flex; gap:28px; flex-wrap:wrap; margin-top:26px; padding-top:18px; border-top:1px solid var(--line); }
+  .stats{ margin-top:26px; padding-top:18px; border-top:1px solid var(--line); }
+  .stats-row{ display:flex; gap:28px; }
+  .stats-row + .stats-row{ margin-top:12px; }
   .stats .stat{ display:flex; align-items:baseline; gap:7px; }
   .stats .v{ font-size:17px; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums; }
   .stats .l{ font-size:12px; color:var(--dim2); letter-spacing:.03em; }
@@ -144,13 +146,11 @@
 <main class="wrap">
 
   <section class="hero">
-    <div class="wordmark">SUB<span>RABBIT</span></div>
+    <div class="wordmark">Sub<span>Rabbit</span></div>
     <h1>sub-1 ghz toolkit</h1>
     <p class="pitch">
-      Turns an <b>ESP32 + CC1101</b> into a sub-1 GHz Swiss Army knife: a <b>packet sniffer</b> with
-      live RSSI, a <b>frequency analyzer</b> for finding active channels, <b>raw IQ</b> and
-      <b>fixed-code</b> capture/replay for your own remotes and sensors, and configurable
-      <b>2-FSK / GFSK / ASK-OOK / 4-FSK / MSK</b> radio parameters.
+      An <b>ESP32 + CC1101</b> sub-1 GHz toolkit: <b>sniff</b> and <b>analyze</b> traffic,
+      <b>capture/replay</b> your own remotes, across <b>2-FSK / GFSK / ASK-OOK / 4-FSK / MSK</b>.
     </p>
 
     <div class="viewer">
@@ -165,10 +165,12 @@
     </div>
 
     <div class="stats">
-      <div class="stat"><span class="v" id="starsCount">—</span><span class="l">stars</span></div>
-      <div class="stat"><span class="v" id="forksCount">—</span><span class="l">forks</span></div>
-      <div class="stat"><span class="v" id="latestTag">—</span><span class="l">latest</span></div>
-      <div class="stat"><span class="v">MIT</span><span class="l">license</span></div>
+      <div class="stats-row">
+        <div class="stat"><span class="v" id="starsCount">—</span><span class="l">stars</span></div>
+        <div class="stat"><span class="v" id="forksCount">—</span><span class="l">forks</span></div>
+        <div class="stat"><span class="v" id="latestTag">—</span><span class="l">latest</span></div>
+      </div>
+      <div class="stats-row"><div class="stat"><span class="v">MIT</span><span class="l">license</span></div></div>
     </div>
   </section>
 
