@@ -24,7 +24,6 @@
     --accent:#e6e6e6; --accent-dim:rgba(230,230,230,.12);
     --warn:#ff5a3c;
   }
-
   *{ box-sizing:border-box; }
   html{ background:var(--bg); color-scheme:dark; scroll-padding-top:env(safe-area-inset-top,0px); }
   body{
@@ -32,30 +31,28 @@
     font-family:"JetBrains Mono", ui-monospace, "Courier New", monospace;
     -webkit-font-smoothing:antialiased;
     padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
-    transition:background .25s ease, color .25s ease;
   }
   a{ color:inherit; }
   .wrap{ max-width:900px; margin:0 auto; padding:0 20px; }
 
-  /* ---- hero ---- */
   .hero{ padding:56px 0 40px; border-bottom:1px solid var(--line); }
-  .wordmark{
-    font-size:clamp(40px,8.5vw,84px); font-weight:800; line-height:.95; letter-spacing:-.01em;
-    margin:0 0 14px; color:var(--text);
-  }
+  .wordmark{ font-size:clamp(40px,8.5vw,84px); font-weight:800; line-height:.95; letter-spacing:-.01em; margin:0 0 14px; color:var(--text); }
   .wordmark span{ color:var(--accent); }
   h1{ font-size:14px; font-weight:700; color:var(--accent); margin:0 0 18px; letter-spacing:.08em; text-transform:uppercase; }
+  .pitch{ font-size:17px; line-height:1.55; max-width:62ch; color:var(--text); margin:0 0 26px; }
+  .pitch b{ color:var(--text); font-weight:700; }
 
   .viewer{ aspect-ratio:16/9; max-width:620px; border:1px solid var(--line); background:var(--panel); position:relative; overflow:hidden; margin:22px 0; }
   .viewer canvas{ display:block; }
-  .viewer .hint{
-    position:absolute; right:10px; bottom:8px; font-size:11px; color:var(--dim2);
-    background:rgba(0,0,0,.5); padding:3px 8px; letter-spacing:.03em; pointer-events:none;
-  }
-  .viewer .loading{
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    font-size:12px; color:var(--dim2); letter-spacing:.03em; pointer-events:none;
-  }
+  .viewer .hint{ position:absolute; right:10px; bottom:8px; font-size:11px; color:var(--dim2); background:rgba(0,0,0,.5); padding:3px 8px; letter-spacing:.03em; pointer-events:none; }
+  .viewer .loading{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--dim2); letter-spacing:.03em; pointer-events:none; }
+
+  .cta{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:30px; }
+  .btn{ display:inline-block; padding:10px 16px; font:inherit; font-size:13px; font-weight:700; text-decoration:none; border:1px solid var(--line); letter-spacing:.03em; cursor:pointer; }
+  .btn.primary{ background:var(--accent); color:#111; border-color:var(--accent); }
+  .btn.ghost{ background:transparent; color:var(--text); }
+  .btn.ghost:hover{ border-color:var(--accent); color:var(--accent); }
+
   .stats{ margin-top:26px; padding-top:18px; border-top:1px solid var(--line); }
   .stats-row{ display:flex; gap:28px; }
   .stats-row + .stats-row{ margin-top:12px; }
@@ -63,35 +60,15 @@
   .stats .v{ font-size:17px; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums; }
   .stats .l{ font-size:12px; color:var(--dim2); letter-spacing:.03em; }
 
-  @media (max-width:760px){
-    .viewer{ max-width:100%; aspect-ratio:4/3; }
-    .stats{ gap:18px; }
-  }
-  .pitch{ font-size:17px; line-height:1.55; max-width:62ch; color:var(--text); margin:0 0 26px; }
-  .pitch b{ color:var(--text); font-weight:700; }
-
-  .cta{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:30px; }
-  .btn{
-    display:inline-block; padding:10px 16px; font:inherit; font-size:13px; font-weight:700;
-    text-decoration:none; border:1px solid var(--line); letter-spacing:.03em; cursor:pointer;
-  }
-  .btn.primary{ background:var(--accent); color:#1a0f00; border-color:var(--accent); }
-  .btn.ghost{ background:transparent; color:var(--text); }
-  .btn.ghost:hover{ border-color:var(--accent); color:var(--accent); }
-
-  /* ---- section tabs ---- */
   .modes{ display:flex; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:4; overflow-x:auto; }
-  .modes a{
-    padding:12px 18px; font-size:12.5px; font-weight:700; letter-spacing:.04em; text-decoration:none;
-    color:var(--dim); border-right:1px solid var(--line); white-space:nowrap;
-  }
+  .modes a{ padding:12px 18px; font-size:12.5px; font-weight:700; letter-spacing:.04em; text-decoration:none; color:var(--dim); border-right:1px solid var(--line); white-space:nowrap; }
   .modes a:hover{ color:var(--text); }
   .modes a.on{ color:var(--accent); box-shadow:inset 0 -2px 0 var(--accent); }
 
-  /* ---- feature sections ---- */
   section.mode{ padding:44px 0; border-bottom:1px solid var(--line); scroll-margin-top:56px; }
   section.mode .tag{ font-size:12px; color:var(--dim2); margin-bottom:6px; }
-  section.mode h2{ font-size:22px; margin:0 0 14px; font-weight:700; }
+  section.mode .h2-row{ display:flex; align-items:center; gap:12px; margin:0 0 14px; }
+  section.mode h2{ font-size:22px; margin:0; font-weight:700; }
   section.mode p{ font-size:14.5px; line-height:1.7; color:var(--dim); max-width:64ch; margin:0 0 20px; }
   section.mode p b{ color:var(--text); font-weight:600; }
   section.mode p code{ font-size:13px; background:var(--panel); border:1px solid var(--line); padding:1px 6px; color:var(--accent); }
@@ -100,19 +77,14 @@
   .specs dt{ flex:0 0 120px; color:var(--dim2); font-weight:700; }
   .specs dd{ margin:0; color:var(--text); }
 
-  /* ---- flash steps (reuses the .specs look, numbered instead of labelled) ---- */
   .steps{ border-top:1px solid var(--line); counter-reset:step; }
   .steps > div{ display:flex; gap:16px; padding:14px 0; border-bottom:1px solid var(--line); }
-  .steps > div::before{
-    counter-increment:step; content:counter(step); flex:0 0 22px; height:22px; text-align:center; line-height:20px;
-    font-size:12px; font-weight:700; color:var(--accent); border:1px solid var(--line);
-  }
+  .steps > div::before{ counter-increment:step; content:counter(step); flex:0 0 22px; height:22px; text-align:center; line-height:20px; font-size:12px; font-weight:700; color:var(--accent); border:1px solid var(--line); }
   .steps h3{ margin:0 0 3px; font-size:14px; font-weight:700; }
   .steps p{ margin:0; font-size:13.5px; line-height:1.6; color:var(--dim); }
   .steps p code{ font-size:12.5px; background:var(--panel); border:1px solid var(--line); padding:1px 6px; color:var(--accent); }
   .steps a{ color:var(--accent); text-decoration:underline; text-underline-offset:3px; }
 
-  /* ---- warning ---- */
   .warn{ padding:40px 0; border-bottom:1px solid var(--line); }
   .warn .box{ border:1px solid var(--warn); padding:18px 20px; }
   .warn .box .hd{ color:var(--warn); font-weight:700; font-size:13px; margin-bottom:10px; }
@@ -120,7 +92,6 @@
   .warn .box p:last-child{ margin-bottom:0; }
   .warn .box b{ color:var(--text); font-weight:700; }
 
-  /* ---- footer ---- */
   footer{ padding:40px 0 60px; }
   footer .cmd{ background:var(--panel); border:1px solid var(--line); padding:16px 18px; font-size:13px; line-height:1.9; margin-bottom:24px; overflow-x:auto; }
   footer .cmd .c{ color:var(--dim2); }
@@ -128,17 +99,10 @@
   footer .meta{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:12px; color:var(--dim2); }
   footer .meta a{ color:var(--dim2); text-decoration:underline; text-underline-offset:3px; }
   footer .meta a:hover{ color:var(--accent); }
-  footer .meta .release{ color:var(--dim2); }
   footer .meta .release .ok{ color:var(--accent); }
 
-  @media (max-width:560px){
-    .hero{ padding:40px 0 30px; }
-    .pitch{ font-size:15.5px; }
-    .specs dt{ flex:0 0 96px; }
-  }
-  @media (prefers-reduced-motion: reduce){
-    .cursor{ animation:none; opacity:1; }
-  }
+  @media (max-width:760px){ .viewer{ max-width:100%; aspect-ratio:4/3; } .stats{ gap:12px; } }
+  @media (max-width:560px){ .hero{ padding:40px 0 30px; } .pitch{ font-size:15.5px; } .specs dt{ flex:0 0 96px; } }
 </style>
 </head>
 <body>
@@ -161,6 +125,7 @@
 
     <div class="cta">
       <a class="btn primary" href="https://wrait8.github.io/WFlasher/">FLASH FIRMWARE</a>
+      <a class="btn ghost" href="wiki/">WIKI</a>
       <a class="btn ghost" href="https://github.com/wrait8/SubRabbit">VIEW SOURCE</a>
     </div>
 
@@ -185,7 +150,7 @@
 
   <section class="mode" id="sniff">
     <div class="tag">firmware / sniff</div>
-    <h2>Packet sniffer &amp; frequency analyzer</h2>
+    <div class="h2-row"><svg width="22" height="22" viewBox="0 0 20 20" fill="var(--accent)"><rect x="8" y="0" width="3" height="3"/><rect x="4" y="4" width="3" height="3"/><rect x="12" y="4" width="3" height="3"/><rect x="0" y="8" width="3" height="3"/><rect x="16" y="8" width="3" height="3"/><rect x="8" y="8" width="3" height="3"/><rect x="8" y="12" width="3" height="3"/><rect x="8" y="16" width="3" height="3"/></svg><h2>Packet sniffer &amp; frequency analyzer</h2></div>
     <p>
       Point it at a channel and watch RF packets come in with live <b>RSSI</b> and link-quality
       readout, or sweep a band to find which channels actually have traffic on them before you
@@ -201,7 +166,7 @@
 
   <section class="mode" id="capture">
     <div class="tag">firmware / capture</div>
-    <h2>Record &amp; replay</h2>
+    <div class="h2-row"><svg width="22" height="22" viewBox="0 0 20 20" fill="var(--accent)"><rect x="4" y="4" width="3" height="3"/><rect x="4" y="8" width="3" height="3"/><rect x="4" y="12" width="3" height="3"/><rect x="8" y="0" width="3" height="3"/><rect x="8" y="16" width="3" height="3"/><rect x="12" y="4" width="3" height="3"/><rect x="12" y="12" width="3" height="3"/><rect x="16" y="8" width="3" height="3"/></svg><h2>Record &amp; replay</h2></div>
     <p>
       Two capture paths, depending on what you're working with. <code>recraw</code> /
       <code>playraw</code> grab the raw RF samples bit for bit — useful while you're still
@@ -218,7 +183,7 @@
 
   <section class="mode" id="radio">
     <div class="tag">firmware / radio</div>
-    <h2>Radio configuration</h2>
+    <div class="h2-row"><svg width="22" height="22" viewBox="0 0 20 20" fill="var(--accent)"><rect x="0" y="16" width="3" height="3"/><rect x="4" y="12" width="3" height="3"/><rect x="8" y="8" width="3" height="3"/><rect x="12" y="4" width="3" height="3"/><rect x="16" y="0" width="3" height="3"/><rect x="0" y="8" width="3" height="3"/><rect x="0" y="12" width="3" height="3"/></svg><h2>Radio configuration</h2></div>
     <p>
       The CC1101's radio parameters are exposed directly: pick the modulation that matches what
       you're working with and tune frequency, data rate and deviation to match.
@@ -232,7 +197,7 @@
 
   <section class="mode" id="jam">
     <div class="tag">firmware / jam · brute — restricted use</div>
-    <h2>Jamming &amp; brute-force</h2>
+    <div class="h2-row"><svg width="22" height="22" viewBox="0 0 20 20" fill="var(--accent)"><rect x="12" y="0" width="3" height="3"/><rect x="8" y="4" width="3" height="3"/><rect x="4" y="8" width="3" height="3"/><rect x="8" y="8" width="3" height="3"/><rect x="12" y="8" width="3" height="3"/><rect x="4" y="12" width="3" height="3"/><rect x="8" y="12" width="3" height="3"/><rect x="4" y="16" width="3" height="3"/></svg><h2>Jamming &amp; brute-force</h2></div>
     <p>
       <code>jam</code> transmits continuously on a channel; <code>brute</code> steps through
       timing/code space against a receiver. Both are <b>active, transmitting</b> modes — unlike
@@ -248,7 +213,7 @@
 
   <section class="mode" id="flash">
     <div class="tag">get it running</div>
-    <h2>Flash the firmware</h2>
+    <div class="h2-row"><svg width="22" height="22" viewBox="0 0 20 20" fill="var(--accent)"><rect x="4" y="0" width="3" height="3"/><rect x="8" y="0" width="3" height="3"/><rect x="0" y="4" width="3" height="3"/><rect x="4" y="4" width="3" height="3"/><rect x="8" y="8" width="3" height="3"/><rect x="12" y="8" width="3" height="3"/><rect x="8" y="12" width="3" height="3"/><rect x="4" y="16" width="3" height="3"/><rect x="8" y="16" width="3" height="3"/></svg><h2>Flash the firmware</h2></div>
     <p>Three ways to get SubRabbit onto the board, from quickest to most hands-on.</p>
     <div class="steps">
       <div>
@@ -272,7 +237,7 @@
 
   <section class="mode" id="hardware">
     <div class="tag">hardware</div>
-    <h2>PCB &amp; breadboard</h2>
+    <div class="h2-row"><svg width="22" height="22" viewBox="0 0 20 20" fill="var(--accent)"><rect x="4" y="4" width="3" height="3"/><rect x="8" y="4" width="3" height="3"/><rect x="12" y="4" width="3" height="3"/><rect x="4" y="8" width="3" height="3"/><rect x="12" y="8" width="3" height="3"/><rect x="4" y="12" width="3" height="3"/><rect x="8" y="12" width="3" height="3"/><rect x="12" y="12" width="3" height="3"/><rect x="8" y="0" width="3" height="3"/><rect x="8" y="16" width="3" height="3"/><rect x="0" y="8" width="3" height="3"/><rect x="16" y="8" width="3" height="3"/></svg><h2>PCB &amp; breadboard</h2></div>
     <p>
       Build it on the project's own PCB, or wire an ESP32 dev board to a CC1101 module on a
       breadboard — both are documented in the repo.
@@ -313,6 +278,7 @@
     <div class="meta">
       <span>MIT licensed</span>
       <span class="release" id="releaseMeta">latest release: <span class="ok">—</span></span>
+      <a href="wiki/">wiki</a>
       <a href="https://github.com/wrait8/SubRabbit">github.com/wrait8/SubRabbit</a>
     </div>
   </footer>
@@ -323,7 +289,6 @@
 (function(){
   "use strict";
 
-  /* ---- mode tabs: highlight on scroll ---- */
   var sections = ["sniff","capture","radio","jam","flash","hardware"].map(function(id){ return document.getElementById(id); });
   var links = document.querySelectorAll(".modes a");
   var io = new IntersectionObserver(function(entries){
@@ -334,7 +299,6 @@
   }, { rootMargin: "-40% 0px -55% 0px" });
   sections.forEach(function(s){ if (s) io.observe(s); });
 
-  /* ---- latest release tag, used in both the hero stats row and the footer meta line ---- */
   fetch("https://api.github.com/repos/wrait8/SubRabbit/releases/latest")
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(rel){
@@ -351,7 +315,6 @@
       if (footEl) footEl.innerHTML = '<a href="https://github.com/wrait8/SubRabbit/releases">releases</a>';
     });
 
-  /* ---- star/fork counts, hero stats row -- left as "—" (not a fabricated number) if the request fails ---- */
   fetch("https://api.github.com/repos/wrait8/SubRabbit")
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(repo){
@@ -361,7 +324,7 @@
       if (starsEl && typeof repo.stargazers_count === "number") starsEl.textContent = repo.stargazers_count;
       if (forksEl && typeof repo.forks_count === "number") forksEl.textContent = repo.forks_count;
     })
-    .catch(function(){ /* leave the "—" placeholders in place */ });
+    .catch(function(){});
 })();
 </script>
 
@@ -385,7 +348,7 @@
     var isMobile = window.innerWidth <= 760;
 
     var scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x101010); // matches --bg, this page has one fixed theme
+    scene.background = new THREE.Color(0x101010);
 
     var camera = new THREE.PerspectiveCamera(25, width / height, 0.1, 1000);
     camera.position.set(0, 8.8, 0.1);
@@ -407,7 +370,6 @@
     controls.maxDistance = 20;
     controls.target.set(0, 2, 0);
 
-    // neutral/white-grey lighting throughout -- no colour tint, to match this page's single mono theme
     scene.add(new THREE.AmbientLight(0x808080, 0.55));
     var key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(4, 8, 6); scene.add(key);
     var fill = new THREE.DirectionalLight(0xcfcfcf, 0.6); fill.position.set(-4, 3, -3); scene.add(fill);
@@ -441,7 +403,6 @@
         if (loadingEl && xhr.total > 0) loadingEl.textContent = "loading model… " + Math.min(Math.round((xhr.loaded / xhr.total) * 100), 99) + "%";
       },
       function(){
-        // no Model/PCB.glb at this path (or it failed to load) -- fall back to a simple placeholder board/chip/antenna
         if (loadingEl) loadingEl.remove();
         var group = new THREE.Group();
         var boardMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5, metalness: 0.4 });
