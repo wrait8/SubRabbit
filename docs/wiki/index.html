@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SubRabbit — Wiki</title>
+<style>
+  :root{
+    --bg:#101010; --panel:#141414; --grid:#1e1e1e; --line:#2a2a2a;
+    --text:#f2f2f2; --dim:#808080; --dim2:#4d4d4d;
+    --accent:#e6e6e6; --accent-weak:#232323;
+    --warn:#ff5a3c;
+    color-scheme:dark;
+    font-family:"JetBrains Mono", ui-monospace, "Courier New", monospace;
+  }
+  *{ box-sizing:border-box; }
+  html, body{ height:100%; }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  a{ color:var(--accent); text-decoration:underline; text-underline-offset:3px; }
+  a:hover{ color:#fff; }
+
+  .site-header{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:14px 24px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:20;
+  }
+  .site-header .mark{ font-weight:800; font-size:16px; color:var(--text); text-decoration:none; }
+  .site-header .mark span{ color:var(--accent); text-shadow:0 0 20px rgba(230,230,230,.3); }
+  .site-header .mark small{ color:var(--dim2); font-weight:400; font-size:11px; margin-left:8px; letter-spacing:.06em; text-transform:uppercase; }
+  .site-header a.back{ color:var(--dim); font-size:13px; text-decoration:none; }
+  .site-header a.back:hover{ color:var(--accent); }
+
+  .layout{ display:flex; min-height:100%; max-width:1200px; margin:0 auto; }
+
+  .sidebar{
+    width:260px; flex-shrink:0; border-right:1px solid var(--line);
+    padding:24px 16px; position:sticky; top:env(safe-area-inset-top,0px);
+    align-self:flex-start; height:100vh; overflow-y:auto;
+  }
+  .back-link{ display:block; font-size:12px; color:var(--dim); margin:0 8px 14px; text-decoration:none; }
+  .back-link:hover{ color:var(--accent); }
+  .brand{ font-weight:800; font-size:17px; margin:0 8px 4px; color:var(--text); }
+  .brand span{ color:var(--dim); }
+  .brand small{ display:block; font-weight:400; color:var(--dim2); font-size:11px; margin-top:4px; letter-spacing:.03em; text-transform:uppercase; }
+  .sidebar nav{ margin-top:18px; }
+  .sidebar ul{ list-style:none; margin:0; padding:0; }
+  .sidebar li{ margin:0; }
+  .nav-link{
+    display:block; padding:7px 8px; color:var(--dim); font-size:13px; line-height:1.3; text-decoration:none;
+  }
+  .nav-link{ transition:background .15s ease, color .15s ease; }
+  .nav-link:hover{ background:var(--panel); color:var(--text); }
+  .nav-link.active{ background:var(--accent-weak); color:var(--accent); font-weight:700; box-shadow:inset 2px 0 0 var(--accent), 0 0 14px rgba(230,230,230,.06); }
+
+  .content{ flex:1; min-width:0; padding:32px clamp(16px,4vw,56px) 80px; }
+
+  .page{ display:none; max-width:800px; }
+  .page.active{ display:block; }
+
+  .page h1{ font-size:24px; font-weight:800; margin:0 0 18px; padding-bottom:12px; border-bottom:1px solid var(--line); }
+  .page h2{ font-size:16px; font-weight:700; color:var(--accent); margin:32px 0 12px; }
+  .page h3{ font-size:14px; font-weight:700; margin:22px 0 8px; }
+  .page p{ line-height:1.7; margin:0 0 14px; font-size:14px; color:var(--text); }
+  .page ul, .page ol{ line-height:1.7; margin:0 0 14px; padding-left:22px; font-size:14px; }
+  .page li{ margin-bottom:4px; }
+  .page li > p{ margin:0; }
+
+  .page code{
+    background:var(--panel); border:1px solid var(--line); border-radius:0;
+    padding:1px 6px; font-size:.88em; color:var(--accent);
+    font-family:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  .page pre{
+    background:var(--panel); border:1px solid var(--line); border-radius:0;
+    padding:28px 16px 14px; overflow-x:auto; max-width:100%; margin:0 0 16px; font-size:13px;
+    position:relative;
+  }
+  .page pre::before{
+    content:"\25CF  \25CF  \25CF"; position:absolute; top:9px; left:14px;
+    font-size:9px; letter-spacing:4px; color:var(--dim2);
+  }
+  .page pre code{ background:none; border:none; padding:0; font-size:1em; color:var(--text); }
+
+  .page blockquote{
+    margin:0 0 16px; padding:14px 18px; background:transparent; border:1px solid var(--warn); border-radius:0; color:var(--dim);
+    box-shadow:0 0 24px rgba(255,90,60,.07);
+  }
+  .page blockquote p{ margin:0; color:var(--dim); font-size:13.5px; }
+  .page blockquote p + p{ margin-top:8px; }
+  .page blockquote strong{ color:var(--warn); }
+
+  .page table{ border-collapse:collapse; width:100%; margin:0 0 18px; font-size:13px; display:block; overflow-x:auto; }
+  .page th, .page td{ border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top; }
+  .page th{ background:var(--panel); font-weight:700; color:var(--dim); white-space:nowrap; box-shadow:inset 0 -2px 0 var(--accent); }
+  .page tbody tr:nth-child(even) td{ background:rgba(255,255,255,.015); }
+  .page tbody tr:hover td{ background:rgba(230,230,230,.03); }
+
+  .page hr{ border:none; border-top:1px solid var(--line); margin:24px 0; }
+
+  .topbar{
+    display:none; align-items:center; gap:10px; padding:12px 16px;
+    padding-top:calc(12px + env(safe-area-inset-top,0px));
+    border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:10;
+  }
+  .topbar button{
+    border:1px solid var(--line); background:var(--panel); color:var(--text);
+    border-radius:0; padding:6px 10px; font-size:13px; font-family:inherit; cursor:pointer;
+  }
+  .topbar button:hover{ border-color:var(--accent); color:var(--accent); }
+  .topbar strong{ font-size:13px; font-weight:700; }
+
+  @media (max-width:820px){
+    .layout{ flex-direction:column; }
+    .sidebar{ position:static; width:auto; height:auto; border-right:none; border-bottom:1px solid var(--line); display:none; }
+    .sidebar.open{ display:block; }
+    .topbar{ display:flex; }
+    .content{ padding:20px 16px 60px; }
+  }
+</style>
+</head>
+<body>
+<div class="site-header">
+  <a class="mark" href="../subrabbit.html">Sub<span>Rabbit</span><small>Wiki</small></a>
+  <a class="back" href="../subrabbit.html">&larr; back to site</a>
+</div>
+<div class="topbar">
+  <button id="menuToggle" type="button">☰ Menu</button>
+  <strong id="topbarTitle">Sub Rabbit MK.II Wiki</strong>
+</div>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <a class="back-link" href="subrabbit.html">&larr; subrabbit</a>
+    <div class="brand">Sub<span>Rabbit</span> MK.II<small>Wiki</small></div>
+    <nav>
+      <ul>
+<li><a href="#Home" class="nav-link" data-target="Home">Sub Rabbit MK.II Wiki</a></li>
+<li><a href="#Getting-Started" class="nav-link" data-target="Getting-Started">Getting Started</a></li>
+<li><a href="#CLI-Command-Reference" class="nav-link" data-target="CLI-Command-Reference">CLI Command Reference</a></li>
+<li><a href="#Web-Interface" class="nav-link" data-target="Web-Interface">Web Interface</a></li>
+<li><a href="#Recording-and-Playback" class="nav-link" data-target="Recording-and-Playback">Recording & Playback (decoded frame buffer)</a></li>
+<li><a href="#Raw-Capture-and-Replay" class="nav-link" data-target="Raw-Capture-and-Replay">Raw Capture & Replay</a></li>
+<li><a href="#Fixed-Code-Signals" class="nav-link" data-target="Fixed-Code-Signals">Fixed‑Code Signals</a></li>
+<li><a href="#Brute-Force" class="nav-link" data-target="Brute-Force">Brute Force</a></li>
+<li><a href="#Sub-File-Import-Export" class="nav-link" data-target="Sub-File-Import-Export">.sub File Import/Export</a></li>
+<li><a href="#KeeLoq" class="nav-link" data-target="KeeLoq">KeeLoq</a></li>
+<li><a href="#Dual-Module-and-RollJam" class="nav-link" data-target="Dual-Module-and-RollJam">Dual‑Module Setup & RollJam</a></li>
+<li><a href="#Troubleshooting" class="nav-link" data-target="Troubleshooting">Troubleshooting</a></li>
+<li><a href="#Legal-and-Responsible-Use" class="nav-link" data-target="Legal-and-Responsible-Use">Legal & Responsible Use</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main class="content">
+<section class="page" id="Home">
+<h1 id="sub-rabbit-mkii-wiki">Sub Rabbit MK.II Wiki</h1>
+<p>Sub Rabbit MK.II is an ESP32 + CC1101 sub‑GHz multitool, controlled over a
+serial CLI and a companion web UI. This wiki covers hardware setup, the full
+command reference, and feature‑by‑feature guides.</p>
+<blockquote>
+<p><strong>⚠️ Read this first:</strong> this device can transmit, jam, and brute‑force
+sub‑GHz RF. Only use it on equipment you own or are explicitly authorized
+to test, and make sure your use complies with your local radio/telecom
+regulations. See <a href="#Legal-and-Responsible-Use">Legal &amp; Responsible Use</a>.</p>
+</blockquote>
+<h2 id="pages">Pages</h2>
+<ul>
+<li><strong><a href="#Getting-Started">Getting Started</a></strong> — wiring, flashing, first boot.</li>
+<li><strong><a href="#CLI-Command-Reference">CLI Command Reference</a></strong> — every CLI command,
+  grouped by category.</li>
+<li><strong><a href="#Web-Interface">Web Interface</a></strong> — the Wi‑Fi AP / browser UI.</li>
+<li><strong><a href="#Recording-and-Playback">Recording &amp; Playback</a></strong> — the decoded‑frame
+  buffer: <code>rec</code>, <code>add</code>, <code>show</code>, <code>play</code>, <code>save</code>/<code>load</code>.</li>
+<li><strong><a href="#Raw-Capture-and-Replay">Raw Capture &amp; Replay</a></strong> — ISR edge‑timing
+  capture, <code>recraw</code>/<code>addraw</code>/<code>playraw</code>/<code>decode</code>.</li>
+<li><strong><a href="#Fixed-Code-Signals">Fixed‑Code Signals</a></strong> — the protocol‑registry
+  encoder/decoder (<code>recsig</code>/<code>playsig</code>/<code>savesig</code>/<code>loadsig</code>/<code>showsig</code>).</li>
+<li><strong><a href="#Brute-Force">Brute Force</a></strong> — built‑in protocol timing tables and the
+  <code>brute</code> command.</li>
+<li><strong><a href="#Sub-File-Import-Export">.sub File Import/Export</a></strong> — Flipper
+  Zero‑compatible RAW captures.</li>
+<li><strong><a href="#KeeLoq">KeeLoq</a></strong> — KeeLoq frame decode/transmit tools.</li>
+<li><strong><a href="#Dual-Module-and-RollJam">Dual‑Module Setup &amp; RollJam</a></strong> — using a
+  second CC1101, and the experimental RollJam sequence.</li>
+<li><strong><a href="#Troubleshooting">Troubleshooting</a></strong> — common issues.</li>
+<li><strong><a href="#Legal-and-Responsible-Use">Legal &amp; Responsible Use</a></strong>.</li>
+</ul>
+</section>
+<section class="page" id="Getting-Started">
+<h1 id="getting-started">Getting Started</h1>
+<h2 id="what-you-need">What you need</h2>
+<ul>
+<li>An <strong>ESP32</strong> dev board (the firmware calls <code>SET_LOOP_TASK_STACK_SIZE</code>,
+  which is ESP32‑Arduino‑core specific).</li>
+<li>One <strong>CC1101</strong> sub‑GHz transceiver module ("Module A"). A second CC1101
+  ("Module B") is optional and only needed for dual‑module features — see
+  <a href="#Dual-Module-and-RollJam">Dual‑Module Setup &amp; RollJam</a>.</li>
+<li>The Arduino IDE (or PlatformIO) configured for your ESP32 board, with the
+  <code>ELECHOUSE_CC1101</code> library available, plus the project's own sources
+  (<code>cli.*</code>, <code>WebInterface.*</code>, <code>radio_manager.*</code>, <code>eeprom_layout.h</code>, and the
+  RF driver / recorder / player / signals / jammer / analyzer modules the
+  CLI delegates to).</li>
+</ul>
+<h2 id="wiring">Wiring</h2>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th style="text-align: center;">Module A (required)</th>
+<th style="text-align: center;">Module B (optional)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SCK</td>
+<td style="text-align: center;">GPIO 18</td>
+<td style="text-align: center;">shared bus</td>
+</tr>
+<tr>
+<td>MISO</td>
+<td style="text-align: center;">GPIO 23</td>
+<td style="text-align: center;">shared bus</td>
+</tr>
+<tr>
+<td>MOSI</td>
+<td style="text-align: center;">GPIO 19</td>
+<td style="text-align: center;">shared bus</td>
+</tr>
+<tr>
+<td>SS / CS</td>
+<td style="text-align: center;">GPIO 5</td>
+<td style="text-align: center;">GPIO 25</td>
+</tr>
+<tr>
+<td>GDO0</td>
+<td style="text-align: center;">GPIO 2</td>
+<td style="text-align: center;">GPIO 26</td>
+</tr>
+<tr>
+<td>GDO2</td>
+<td style="text-align: center;">GPIO 4</td>
+<td style="text-align: center;">GPIO 27</td>
+</tr>
+</tbody>
+</table>
+<p>Both modules share the same SPI bus (SCK/MISO/MOSI); only CS/GDO0/GDO2 are
+per‑module. If you're wiring only one module, use the Module A pins — the
+Module B pins are simply left unconnected and firmware never touches them
+unless you explicitly ask it to (see below).</p>
+<blockquote>
+<p><strong>Board note:</strong> on many ESP32‑WROVER boards, GPIO16/17 double as PSRAM
+pins. Module B's pins were chosen to avoid probing anything unsafe, and
+module‑B detection is deliberately <strong>not</strong> run at boot — it only runs when
+you issue the <code>modules</code> command (or press "Check Modules" in the web UI).</p>
+</blockquote>
+<h2 id="flashing">Flashing</h2>
+<ol>
+<li>Open the sketch (<code>SubRabbit.ino</code>) in the Arduino IDE / PlatformIO.</li>
+<li>Select your ESP32 board and the correct serial port.</li>
+<li>Build and upload.</li>
+</ol>
+<h2 id="first-boot">First boot</h2>
+<ol>
+<li>Open a serial monitor at <strong>115200 baud, newline = CR or LF</strong>.</li>
+<li>On boot you should see:
+   ```
+   CC1101 OK
+   Sub Rabbit MK.II - type 'help' for available commands<blockquote>
+<p><code>``
+   If you instead see</code>CC1101 err<code>, double‑check your wiring and that the
+   module is getting power — the firmware calls</code>ELECHOUSE_cc1101.getCC1101()` right after init and reports the result.</p>
+</blockquote>
+</li>
+<li>Run <code>help</code> to see the full command list (also documented in
+   <a href="#CLI-Command-Reference">CLI Command Reference</a>).</li>
+<li>The device also starts its own Wi‑Fi access point (<code>web.begin()</code>) — see
+   <a href="#Web-Interface">Web Interface</a> for connecting from a browser.</li>
+</ol>
+<h2 id="basic-workflow">Basic workflow</h2>
+<pre><code class="language-text">&gt; freq 433.92        # set frequency (MHz)
+Freq: 433.92 MHz
+&gt; rx                  # start the sniffer
+RX started
+&gt; stop                # stop whatever mode is active
+All stopped
+&gt; status              # see current mode/buffer state
+Rx:OFF Jam:OFF Rec:OFF Chat:OFF Armed:OFF Frames:0 Buf:0 Echo:ON
+</code></pre>
+<p>From here, head to <a href="#Recording-and-Playback">Recording &amp; Playback</a> or
+<a href="#Raw-Capture-and-Replay">Raw Capture &amp; Replay</a> depending on whether the
+remote you're working with uses the CC1101's packet engine (decoded frames)
+or needs raw edge‑timing capture.</p>
+</section>
+<section class="page" id="CLI-Command-Reference">
+<h1 id="cli-command-reference">CLI Command Reference</h1>
+<p>Commands are sent as plain lines over serial (115200 baud) or via the web
+UI's command queue, and are parsed by <code>CommandHandler::processLine()</code> as
+<code>&lt;command&gt; [args]</code>. Unknown commands print <code>Unknown: &lt;command&gt;</code>.</p>
+<p>This page documents every command implemented in <code>cli.cpp</code>, including a
+few that exist in the parser but aren't listed in the in‑firmware <code>help</code>
+text (marked <em>undocumented in <code>help</code></em> below).</p>
+<h2 id="modulation-rf-settings">Modulation &amp; RF settings</h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mod &lt;0-4&gt;</code></td>
+<td>Set modulation scheme.</td>
+</tr>
+<tr>
+<td><code>freq &lt;MHz&gt;</code></td>
+<td>Set center frequency (also updates the recorder's frequency, used for <code>.sub</code> export).</td>
+</tr>
+<tr>
+<td><code>dev &lt;kHz&gt;</code></td>
+<td>Set frequency deviation.</td>
+</tr>
+<tr>
+<td><code>chan &lt;0-255&gt;</code></td>
+<td>Set channel number.</td>
+</tr>
+<tr>
+<td><code>chsp &lt;kHz&gt;</code></td>
+<td>Set channel spacing.</td>
+</tr>
+<tr>
+<td><code>bw &lt;kHz&gt;</code></td>
+<td>Set RX bandwidth.</td>
+</tr>
+<tr>
+<td><code>rate &lt;kbaud&gt;</code></td>
+<td>Set data rate.</td>
+</tr>
+<tr>
+<td><code>power &lt;dBm&gt;</code></td>
+<td>Set TX power.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="sync-packet">Sync &amp; packet</h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>syncmode &lt;0-7&gt;</code></td>
+<td>Set sync mode.</td>
+</tr>
+<tr>
+<td><code>sync &lt;hi,lo&gt;</code></td>
+<td>Set sync word (two comma‑separated values).</td>
+</tr>
+<tr>
+<td><code>adrchk &lt;0-3&gt;</code></td>
+<td>Set address check mode.</td>
+</tr>
+<tr>
+<td><code>addr &lt;0-255&gt;</code></td>
+<td>Set device address.</td>
+</tr>
+<tr>
+<td><code>whitening &lt;0/1&gt;</code></td>
+<td>Whitening on/off.</td>
+</tr>
+<tr>
+<td><code>pktfmt &lt;0-3&gt;</code></td>
+<td>Packet format.</td>
+</tr>
+<tr>
+<td><code>lenconf &lt;0-3&gt;</code></td>
+<td>Length config.</td>
+</tr>
+<tr>
+<td><code>pktlen &lt;bytes&gt;</code></td>
+<td>Fixed packet length.</td>
+</tr>
+<tr>
+<td><code>crc &lt;0/1&gt;</code></td>
+<td>CRC check on/off.</td>
+</tr>
+<tr>
+<td><code>crcaf &lt;0/1&gt;</code></td>
+<td>CRC autoflush on/off.</td>
+</tr>
+<tr>
+<td><code>dcfilter &lt;0/1&gt;</code></td>
+<td>DC filter on/off.</td>
+</tr>
+<tr>
+<td><code>manchester &lt;0/1&gt;</code></td>
+<td>Manchester encoding on/off.</td>
+</tr>
+<tr>
+<td><code>fec &lt;0/1&gt;</code></td>
+<td>Forward error correction on/off.</td>
+</tr>
+<tr>
+<td><code>pre &lt;0-7&gt;</code></td>
+<td>Preamble length.</td>
+</tr>
+<tr>
+<td><code>pqt &lt;0-255&gt;</code></td>
+<td>Preamble quality threshold.</td>
+</tr>
+<tr>
+<td><code>append &lt;0/1&gt;</code></td>
+<td>Append status bytes on/off.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="operations">Operations</h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rx</code></td>
+<td>Toggle the sniffer (prints received packets as hex).</td>
+</tr>
+<tr>
+<td><code>tx &lt;hex&gt;</code></td>
+<td>Transmit a packet given as a hex string (≤120 hex chars / 60 bytes).</td>
+</tr>
+<tr>
+<td><code>jam</code></td>
+<td>Toggle the jammer.</td>
+</tr>
+<tr>
+<td><code>chat</code></td>
+<td>Toggle chat mode (turns the radio into a two‑way serial pipe).</td>
+</tr>
+<tr>
+<td><code>brute &lt;protocol&gt; [freq] [repeats]</code></td>
+<td>Brute‑force a fixed‑code protocol's full code space. See <a href="#Brute-Force">Brute Force</a>.</td>
+</tr>
+</tbody>
+</table>
+<p>Starting any one of <code>rx</code>/<code>jam</code>/<code>rec</code>/<code>chat</code> automatically turns the others
+off — only one "mode" is active at a time.</p>
+<h2 id="recording-replay-decoded-frame-buffer">Recording &amp; replay (decoded frame buffer)</h2>
+<p>See <a href="#Recording-and-Playback">Recording &amp; Playback</a> for details.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rec</code></td>
+<td>Toggle recording mode (captures decoded RX packets into the frame buffer).</td>
+</tr>
+<tr>
+<td><code>add &lt;hex&gt;</code></td>
+<td>Manually add a frame to the buffer from a hex string.</td>
+</tr>
+<tr>
+<td><code>show</code></td>
+<td>List buffered frames.</td>
+</tr>
+<tr>
+<td><code>flush</code></td>
+<td>Clear the frame buffer.</td>
+</tr>
+<tr>
+<td><code>play [N]</code></td>
+<td>Replay frame <code>N</code> (1‑indexed), or all frames if <code>N</code> is omitted.</td>
+</tr>
+<tr>
+<td><code>save</code></td>
+<td>Save the frame buffer to EEPROM.</td>
+</tr>
+<tr>
+<td><code>load</code></td>
+<td>Load the frame buffer from EEPROM.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="raw-mode-isrcaptured-edge-timing">Raw mode (ISR‑captured edge timing)</h2>
+<p>See <a href="#Raw-Capture-and-Replay">Raw Capture &amp; Replay</a> for details. The RSSI
+gate is <strong>opt‑in</strong> — <code>recraw s</code> with no argument arms immediately.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>recraw s [rssi]</code></td>
+<td>Arm interrupt‑driven capture; optional RSSI threshold (dBm) to wait for before capturing.</td>
+</tr>
+<tr>
+<td><code>recraw x</code></td>
+<td>Stop and decode the ISR capture.</td>
+</tr>
+<tr>
+<td><code>recraw ?</code></td>
+<td>Print ISR capture status.</td>
+</tr>
+<tr>
+<td><code>addraw &lt;pulses&gt;</code></td>
+<td>Seed the edge buffer manually from a pulse train, e.g. <code>+100,-200,+150,...</code>.</td>
+</tr>
+<tr>
+<td><code>playraw</code></td>
+<td>Replay the last edge capture (from ISR capture or <code>addraw</code>).</td>
+</tr>
+<tr>
+<td><code>decode</code></td>
+<td>Decode the last capture.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="fixed-code-protocolregistry-encoderdecoder">Fixed code (protocol‑registry encoder/decoder)</h2>
+<p>See <a href="#Fixed-Code-Signals">Fixed‑Code Signals</a> for details.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>recsig</code></td>
+<td>Capture + decode a fixed‑code signal via ISR capture.</td>
+</tr>
+<tr>
+<td><code>playsig</code></td>
+<td>Replay the currently loaded signal by protocol.</td>
+</tr>
+<tr>
+<td><code>savesig</code></td>
+<td>Save the loaded signal to EEPROM.</td>
+</tr>
+<tr>
+<td><code>loadsig</code></td>
+<td>Load a signal from EEPROM.</td>
+</tr>
+<tr>
+<td><code>showsig</code></td>
+<td>Show the currently loaded signal (protocol, code, bits, TE).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="sub-file-flippercompatible-raw-exportimport">.sub file (Flipper‑compatible RAW export/import)</h2>
+<p>See <a href="#Sub-File-Import-Export">.sub File Import/Export</a> for details.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>subexport</code></td>
+<td>Export the last raw capture as <code>.sub</code> text (also pushed to a connected web client).</td>
+</tr>
+<tr>
+<td><code>subimport &lt;sub-text&gt;</code></td>
+<td>Import a <code>.sub</code> text blob. For large captures, use the web UI instead of the serial CLI.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="keeloq">KeeLoq</h2>
+<p>See <a href="#KeeLoq">KeeLoq</a> for details and caveats. The cipher core is exact; OTA
+(on‑air) frame timing is best‑effort.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>keeloqtest &lt;key_hex&gt;</code></td>
+<td>Attempt to decode a KeeLoq frame from the last raw capture using the given key.</td>
+</tr>
+<tr>
+<td><code>keeloqtx &lt;key_hex&gt; &lt;serial_hex&gt; &lt;btn&gt; &lt;ctr&gt;</code></td>
+<td>Build and transmit a KeeLoq hopping‑code frame.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="settings">Settings</h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>modules</code></td>
+<td>Actively probe for Module B, report detected modules + current TX/RX module assignment, then <strong>re‑initialize Module A</strong> (this resets frequency/modulation/etc. back to defaults — re‑apply your preset afterward).</td>
+</tr>
+<tr>
+<td><code>modstatus</code></td>
+<td><em>(undocumented in <code>help</code>)</em> Report cached module/role state <strong>without</strong> touching hardware — safe to call automatically (e.g. from a dashboard).</td>
+</tr>
+<tr>
+<td><code>txmodule a\|b</code></td>
+<td>Choose which module transmits (requires Module B detected).</td>
+</tr>
+<tr>
+<td><code>rxmodule a\|b</code></td>
+<td>Choose which module receives (requires Module B detected).</td>
+</tr>
+<tr>
+<td><code>apset &lt;ssid&gt; &lt;pass&gt;</code></td>
+<td>Change the Wi‑Fi AP SSID/password (password must be ≥8 characters). Restarts the AP — you'll need to reconnect.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="rolljam-experimental-needs-two-modules">RollJam (experimental, needs two modules)</h2>
+<p>See <a href="#Dual-Module-and-RollJam">Dual‑Module Setup &amp; RollJam</a> for details and
+important caveats — this feature is explicitly marked untested against real
+two‑module hardware in the source.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rolljam start</code></td>
+<td>Jam + capture two consecutive remote presses, using the current RX/TX module assignment.</td>
+</tr>
+<tr>
+<td><code>rolljam replay1</code></td>
+<td>Replay the first captured slot.</td>
+</tr>
+<tr>
+<td><code>rolljam replay2</code></td>
+<td>Replay the second captured slot.</td>
+</tr>
+<tr>
+<td><code>rolljam stop</code></td>
+<td>Abort an in‑progress RollJam sequence.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="utility">Utility</h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rssi</code></td>
+<td>Print current RSSI (dBm) and LQI.</td>
+</tr>
+<tr>
+<td><code>analyze</code></td>
+<td>Scan the spectrum.</td>
+</tr>
+<tr>
+<td><code>echo &lt;0/1&gt;</code></td>
+<td>Toggle echo.</td>
+</tr>
+<tr>
+<td><code>stop</code></td>
+<td>Stop all active modes (RX/jam/record/chat), abort any in‑progress capture, and halt a running brute force.</td>
+</tr>
+<tr>
+<td><code>reset</code></td>
+<td>Hardware‑reset the CC1101.</td>
+</tr>
+<tr>
+<td><code>init</code></td>
+<td>Reinitialize the CC1101.</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>Print current mode flags, armed state, frame count, buffer position, and echo state.</td>
+</tr>
+<tr>
+<td><code>help</code> / <code>?</code></td>
+<td>Print the in‑firmware command summary.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="additional-commands-not-listed-in-help">Additional commands not listed in <code>help</code></h3>
+<p>These are implemented in the parser but not printed by <code>printHelp()</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>modstatus</code></td>
+<td>See above — cached module/role status, no hardware probing.</td>
+</tr>
+<tr>
+<td><code>lastcapture</code></td>
+<td>Summarize the last raw capture (pulse count, and decode result if any).</td>
+</tr>
+<tr>
+<td><code>apinfo</code></td>
+<td>Print the device's current Wi‑Fi AP SSID.</td>
+</tr>
+<tr>
+<td><code>reboot</code></td>
+<td>Restart the device (<code>ESP.restart()</code>), after a short delay so a web client can receive the log message first.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="page" id="Web-Interface">
+<h1 id="web-interface">Web Interface</h1>
+<p>Sub Rabbit MK.II hosts its own Wi‑Fi access point and web UI via the
+<code>WebInterface</code> class, instantiated in <code>SubRabbit.ino</code> and driven from
+<code>loop()</code> (<code>web.loop()</code>) alongside the serial CLI. The CLI and web UI share
+the same <code>CommandHandler</code> backend, so anything you can do from serial you
+can do from the browser, and vice versa.</p>
+<blockquote>
+<p>The <code>WebInterface</code> implementation itself isn't included in this pass of
+the repo — this page documents what's observable from how <code>cli.cpp</code> and
+<code>SubRabbit.ino</code> use it. Expand this page once <code>WebInterface.*</code> lands.</p>
+</blockquote>
+<h2 id="what-the-cli-tells-us-about-it">What the CLI tells us about it</h2>
+<ul>
+<li><strong><code>web.begin()</code></strong> is called once in <code>setup()</code>, after <code>cli.setWebInterface(&amp;web)</code>
+  wires the recorder/player/signals modules and the CLI itself to the same
+  <code>WebInterface</code> instance.</li>
+<li><strong>Connected‑client log streaming</strong> — <code>CommandHandler::logPrint()</code> mirrors
+  every CLI log line to the web client via <code>web-&gt;sendLog(msg, type)</code> when a
+  client is connected (<code>web-&gt;isClientConnected()</code>), so the web UI gets a
+  live log feed in addition to whatever direct Serial output it sees.</li>
+<li><strong><code>.sub</code> file push</strong> — <code>subexport</code> sends the exported <code>.sub</code> text to a
+  connected web client via <code>web-&gt;sendSubFile(text)</code>, in addition to printing
+  it over serial. This is the recommended path for <strong>large</strong> captures —
+  <code>subimport</code> over serial is explicitly limited to short blobs.</li>
+<li><strong>AP settings</strong> — <code>apset &lt;ssid&gt; &lt;pass&gt;</code> persists the new credentials to
+  EEPROM and then calls <code>web-&gt;restartAP(ssid, pass)</code>, which restarts the
+  access point under the new SSID/password. You'll need to reconnect your
+  phone/laptop to the new network afterward.</li>
+<li><strong>"Check Modules" button</strong> — the Settings page's "Check Modules" button
+  maps to the <code>modules</code> CLI command (<code>CommandHandler::cmdModules()</code>), which
+  actively probes for a second CC1101 and re‑initializes Module A as a side
+  effect (see <a href="#CLI-Command-Reference">CLI Command Reference</a>). The
+  dashboard's passive module/role display should use <code>modstatus</code> instead,
+  since that reads cached state without touching hardware.</li>
+<li><strong>Command queue</strong> — <code>cmdRollJam()</code>'s source comments note it's often
+  reached <em>from</em> <code>web-&gt;loop()</code> (web UI → command queue → CLI), which is why
+  it deliberately avoids calling <code>web-&gt;loop()</code> again inside its own wait
+  loop (to avoid recursive stack growth on a pending command).</li>
+</ul>
+<h2 id="connecting">Connecting</h2>
+<ol>
+<li>After boot, look for the device's Wi‑Fi access point (default SSID/
+   password are whatever your <code>WebInterface</code> build ships with — change them
+   any time with <code>apset &lt;ssid&gt; &lt;pass&gt;</code> from the CLI or the Settings page).</li>
+<li>Connect your phone or laptop to that AP.</li>
+<li>Open the device's web UI in a browser (check <code>WebInterface</code>'s default
+   address, typically the ESP32 SoftAP gateway IP, e.g. <code>192.168.4.1</code>,
+   unless configured otherwise).</li>
+<li>The dashboard should mirror serial log output and give you the equivalent
+   of the CLI commands above through buttons/forms.</li>
+</ol>
+<h2 id="large-sub-captures">Large <code>.sub</code> captures</h2>
+<p>If you're exporting a raw capture with a lot of pulses, prefer the web UI:
+<code>subexport</code> streams the full <code>.sub</code> text to a connected browser client,
+while the serial <code>subimport &lt;sub-text&gt;</code> path is sized for short blobs only.</p>
+</section>
+<section class="page" id="Recording-and-Playback">
+<h1 id="recording-playback-decoded-frame-buffer">Recording &amp; Playback (decoded frame buffer)</h1>
+<p>This is the "packet engine" workflow: frames the CC1101 itself has decoded
+(as opposed to raw edge timing — see <a href="#Raw-Capture-and-Replay">Raw Capture &amp; Replay</a>).</p>
+<h2 id="recording">Recording</h2>
+<pre><code class="language-text">&gt; rec
+Recording started
+</code></pre>
+<p><code>rec</code> toggles <code>recordingMode</code> on, turning off any other active mode (RX
+sniff / jam / chat), selects the module for RX, and puts the radio in RX
+mode. While recording, <code>CommandHandler::handleRx()</code> (called every <code>loop()</code>
+iteration) pushes every successfully decoded packet into the recorder's
+frame buffer via <code>recorder.addFrame()</code>.</p>
+<p>Toggle it off with <code>rec</code> again, or with <code>stop</code> (which also stops RX/jam/chat
+and aborts any in‑progress raw capture).</p>
+<h2 id="adding-frames-manually">Adding frames manually</h2>
+<pre><code class="language-text">&gt; add DEADBEEF
+Frame added. Total: 1
+</code></pre>
+<p><code>add &lt;hex&gt;</code> accepts a hex string (up to 120 hex characters / 60 bytes),
+converts it to bytes, and appends it directly to the buffer — useful for
+hand‑crafting a frame without actually receiving it over the air.</p>
+<h2 id="inspecting-the-buffer">Inspecting the buffer</h2>
+<pre><code class="language-text">&gt; show      # list buffered frames
+&gt; status    # Frames:&lt;n&gt; Buf:&lt;bytes used&gt;, among other state
+</code></pre>
+<h2 id="clearing-the-buffer">Clearing the buffer</h2>
+<pre><code class="language-text">&gt; flush
+Buffer flushed
+</code></pre>
+<h2 id="playback">Playback</h2>
+<pre><code class="language-text">&gt; play 2     # replay frame #2 (1-indexed)
+&gt; play       # replay every frame in the buffer, in order
+</code></pre>
+<p><code>play &lt;N&gt;</code> maps to <code>player.playFrame(N-1)</code> (converted to 0‑indexed
+internally); <code>play</code> with no argument calls <code>player.playAllFrames()</code>.</p>
+<h2 id="persistence">Persistence</h2>
+<pre><code class="language-text">&gt; save   # write the frame buffer to EEPROM
+&gt; load   # read the frame buffer back from EEPROM
+</code></pre>
+<p>The frame buffer's EEPROM region is separate from the fixed‑code signal
+region and the AP‑credentials region — see <code>eeprom_layout.h</code> and
+<code>EEPROM_SIGNAL_REGION_OFFSET</code> / <code>EEPROM_AP_REGION_OFFSET</code> for the layout, so
+saving one doesn't clobber the others.</p>
+</section>
+<section class="page" id="Raw-Capture-and-Replay">
+<h1 id="raw-capture-replay">Raw Capture &amp; Replay</h1>
+<p>Raw mode captures the actual edge timings on the air (via a GDO0 interrupt,
+attached inside <code>recorder.init()</code>), independent of the CC1101's packet
+engine. This is what you want for signals that don't fit a configured
+packet format, or before you know what protocol you're dealing with.</p>
+<h2 id="arming-a-capture">Arming a capture</h2>
+<pre><code class="language-text">&gt; recraw s          # arm immediately, no RSSI gate
+&gt; recraw s -65       # arm, but wait for RSSI to cross -65 dBm first
+</code></pre>
+<p>The RSSI gate is <strong>opt‑in</strong>. Bare <code>recraw s</code> arms right away with no
+threshold — this matches the tool's original pre‑RSSI behavior. Only
+<code>recraw s &lt;dBm&gt;</code> waits for that RSSI level before capturing; picking an
+unreachable threshold will otherwise silently time out and look like
+nothing happened, so start without a threshold if you're not sure.</p>
+<h2 id="stopping-status">Stopping / status</h2>
+<pre><code class="language-text">&gt; recraw x    # stop and decode the ISR capture
+&gt; recraw ?    # print ISR capture status
+</code></pre>
+<h2 id="seeding-a-capture-manually">Seeding a capture manually</h2>
+<pre><code class="language-text">&gt; addraw +100,-200,+150,-300,...
+Edge data added (4 pulses)
+</code></pre>
+<p><code>addraw</code> accepts an edge pulse train directly — positive numbers are
+"high" durations, negative numbers are "low" durations, in microseconds.
+This is the only manual raw‑ingest path; a previous hex‑interval variant has
+been removed. It's handy for replaying a train you captured elsewhere (e.g.
+pasted from a <code>.sub</code> file or another tool).</p>
+<h2 id="replaying">Replaying</h2>
+<pre><code class="language-text">&gt; playraw
+</code></pre>
+<p>Replays the last edge capture, whether it came from an ISR capture or from
+<code>addraw</code>.</p>
+<h2 id="decoding">Decoding</h2>
+<pre><code class="language-text">&gt; decode
+</code></pre>
+<p>Runs the decoder against the last capture (same decode step <code>recraw x</code>
+triggers automatically).</p>
+<h2 id="where-this-feeds-into-other-features">Where this feeds into other features</h2>
+<ul>
+<li><strong>Fixed‑code signals</strong> (<code>recsig</code>) builds on the same ISR capture
+  machinery but additionally tries to match the result against the known
+  protocol registry — see <a href="#Fixed-Code-Signals">Fixed‑Code Signals</a>.</li>
+<li><strong><code>.sub</code> export</strong> (<code>subexport</code>) exports whatever is in the raw
+  edge buffer — see <a href="#Sub-File-Import-Export">.sub File Import/Export</a>.</li>
+<li><strong>KeeLoq</strong> (<code>keeloqtest</code>) looks for KeeLoq‑shaped framing in the last raw
+  capture — see <a href="#KeeLoq">KeeLoq</a>.</li>
+<li><strong><code>lastcapture</code></strong> gives you a quick summary (pulse count, decode result if
+  any) without re‑running anything.</li>
+</ul>
+</section>
+<section class="page" id="Fixed-Code-Signals">
+<h1 id="fixedcode-signals">Fixed‑Code Signals</h1>
+<p>Sub Rabbit MK.II includes its own protocol‑registry‑based encoder/decoder
+for common <strong>fixed‑code</strong> remotes (as opposed to rolling‑code systems like
+KeeLoq — see <a href="#KeeLoq">KeeLoq</a>). It's a from‑scratch implementation (the code
+comments note it deliberately doesn't depend on the RCSwitch library).</p>
+<h2 id="capturing-and-decoding-a-signal">Capturing and decoding a signal</h2>
+<pre><code class="language-text">&gt; recsig
+Waiting for signal (ISR capture + decode)...
+Loaded: code=1234567 bits=12 te=320us
+</code></pre>
+<p><code>recsig</code> runs an ISR capture (same mechanism as <a href="#Raw-Capture-and-Replay">raw capture</a>,
+with no RSSI gate) and tries to decode it against the protocol registry. If
+no protocol match is found, you'll see:</p>
+<pre><code class="language-text">No confirmed fixed-code signal captured.
+</code></pre>
+<p>On success, the decoded <code>(protocol, code, bits, TE)</code> tuple is stored as the
+"loaded signal" for the session.</p>
+<h2 id="inspecting-the-loaded-signal">Inspecting the loaded signal</h2>
+<pre><code class="language-text">&gt; showsig
+Protocol: Came  Code: 1234567  Bits: 12  TE: 320us
+</code></pre>
+<h2 id="replaying-the-loaded-signal">Replaying the loaded signal</h2>
+<pre><code class="language-text">&gt; playsig
+</code></pre>
+<p>Re‑transmits the loaded signal using its recorded protocol/timing.</p>
+<h2 id="persisting-the-loaded-signal">Persisting the loaded signal</h2>
+<pre><code class="language-text">&gt; savesig    # write loaded signal to its own EEPROM region
+&gt; loadsig    # read a signal back from EEPROM
+</code></pre>
+<p>The fixed‑code signal lives in its own EEPROM region
+(<code>EEPROM_SIGNAL_REGION_OFFSET</code>), separate from the frame buffer's region,
+so <code>savesig</code>/<code>loadsig</code> won't collide with <code>save</code>/<code>load</code>.</p>
+<h2 id="brute-forcing-a-protocol">Brute forcing a protocol</h2>
+<p>If you don't have a captured signal but know (or are testing) a protocol
+from the built‑in table, see <a href="#Brute-Force">Brute Force</a> for sweeping the
+full code space instead of decoding a captured one.</p>
+</section>
+<section class="page" id="Brute-Force">
+<h1 id="brute-force">Brute Force</h1>
+<p><code>brute &lt;protocol&gt; [freq] [repeats]</code> sweeps the <strong>entire code space</strong> of a
+known fixed‑code protocol's timing table, transmitting every possible code
+in sequence.</p>
+<pre><code class="language-text">&gt; brute came 433.92 1
+Brute Came 433.92MHz x1
+0/4095
+10/4095
+...
+Brute force done
+</code></pre>
+<h2 id="builtin-protocol-timing-table">Built‑in protocol timing table</h2>
+<table>
+<thead>
+<tr>
+<th>Protocol</th>
+<th style="text-align: right;">Bits</th>
+<th style="text-align: right;">Code space</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Came</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">4,096</td>
+</tr>
+<tr>
+<td>Nice</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">4,096</td>
+</tr>
+<tr>
+<td>Ansonic</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">4,096</td>
+</tr>
+<tr>
+<td>Holtek</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">4,096</td>
+</tr>
+<tr>
+<td>Linear</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">1,024</td>
+</tr>
+<tr>
+<td>Chamberlain</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">512</td>
+</tr>
+</tbody>
+</table>
+<p>Protocol name matching is case‑insensitive. If you pass an unknown name:</p>
+<pre><code class="language-text">&gt; brute foo
+Unknown protocol
+</code></pre>
+<p><code>freq</code> defaults to <code>433.92</code> MHz and <code>repeats</code> defaults to <code>1</code> if omitted.</p>
+<h2 id="what-it-does-under-the-hood">What it does under the hood</h2>
+<p>For the duration of the sweep, the radio is taken out of its normal packet
+mode (<code>setCCMode(false)</code>, <code>setPacketFormat(3)</code>) and bit‑banged directly on
+the TX GPIO pin using the protocol's pilot/zero/one/stop pulse timings, then
+restored to packet mode afterward. Progress is logged every 10 codes.</p>
+<h2 id="stopping-a-sweep">Stopping a sweep</h2>
+<p>Send any character over serial (<code>Serial.available()</code>), or run <code>stop</code> — both
+set an internal stop flag that the sweep checks between codes:</p>
+<pre><code class="language-text">Brute force stopped
+</code></pre>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>This transmits continuously across the protocol's entire code space at
+  the configured power and frequency. See
+  <a href="#Legal-and-Responsible-Use">Legal &amp; Responsible Use</a> before running this
+  against anything you don't own or aren't explicitly authorized to test.</li>
+<li>The web UI's <code>web-&gt;loop()</code> is pumped once per code during the sweep so the
+  web connection stays responsive while a sweep is running.</li>
+</ul>
+</section>
+<section class="page" id="Sub-File-Import-Export">
+<h1 id="sub-file-importexport">.sub File Import/Export</h1>
+<p>Sub Rabbit MK.II can export and import <strong>Flipper Zero‑compatible RAW <code>.sub</code></strong>
+text, so captures can move between this tool, Flipper Zero, and other
+compatible tooling.</p>
+<h2 id="exporting">Exporting</h2>
+<pre><code class="language-text">&gt; subexport
+</code></pre>
+<p>Exports the <strong>last raw capture</strong> (the edge pulse buffer from
+<a href="#Raw-Capture-and-Replay">raw capture</a>) as <code>.sub</code> text:</p>
+<ul>
+<li>Prints the <code>.sub</code> text over serial.</li>
+<li>Also pushes it to a connected web client via <code>web-&gt;sendSubFile()</code>, which
+  is the recommended path for large captures.</li>
+<li>If a fixed‑code signal was decoded from the same capture, its protocol
+  name, code, bit count, and timing (<code>TE</code>) are embedded alongside the raw
+  pulses.</li>
+<li>If there's nothing to export:
+  <code>text
+  No raw capture to export - run recraw first</code></li>
+</ul>
+<h2 id="importing">Importing</h2>
+<pre><code class="language-text">&gt; subimport RSSI: ... (sub-text here)
+</code></pre>
+<ul>
+<li><code>subimport &lt;sub-text&gt;</code> parses the given <code>.sub</code> blob, loads its pulses into
+  the edge buffer, and sets the device's frequency from the file's embedded
+  frequency.</li>
+<li>If the file carries the extended protocol fields (protocol name + code +
+  bits + TE) and the protocol name matches an entry in the fixed‑code
+  registry, the decoded signal is loaded too (equivalent to what <code>recsig</code>
+  produces), ready for <code>playsig</code>.</li>
+<li><strong>Serial import is sized for short blobs only.</strong> For large captures,
+  import via the web UI instead:
+  <code>text
+  Usage: subimport &lt;sub-text&gt;  (or use the web UI for large captures)</code></li>
+</ul>
+<h2 id="typical-round-trip">Typical round trip</h2>
+<pre><code class="language-text">&gt; recraw s
+&gt; recraw x
+&gt; subexport
+# copy the printed .sub text, or receive it in the web UI
+# ... later, on the same or another device ...
+&gt; subimport &lt;paste the .sub text&gt;
+&gt; playraw
+</code></pre>
+</section>
+<section class="page" id="KeeLoq">
+<h1 id="keeloq">KeeLoq</h1>
+<p>Sub Rabbit MK.II includes KeeLoq frame tooling for <strong>testing systems you
+already have the key for</strong> (e.g. your own remote/receiver pair during
+development, interoperability testing, or key‑recovery‑free protocol
+analysis). The source comments are explicit that the cipher core is exact
+but the on‑air (OTA) frame timing is best‑effort and may need tuning per
+device — see <code>keeloq.h</code> in the firmware for notes.</p>
+<blockquote>
+<p>KeeLoq is a rolling‑code scheme used in many vehicle and gate/garage
+remotes. Interacting with a KeeLoq system you don't own or aren't
+explicitly authorized to test is illegal in most jurisdictions and can
+affect safety‑relevant equipment. See
+<a href="#Legal-and-Responsible-Use">Legal &amp; Responsible Use</a>.</p>
+</blockquote>
+<h2 id="decoding-a-captured-frame">Decoding a captured frame</h2>
+<pre><code class="language-text">&gt; keeloqtest &lt;key_hex&gt;
+</code></pre>
+<ul>
+<li>Takes a hex key (up to 16 hex digits / 64 bits).</li>
+<li>Looks for KeeLoq‑shaped framing in the <strong>last raw capture</strong> (see
+  <a href="#Raw-Capture-and-Replay">Raw Capture &amp; Replay</a> — run <code>recraw</code> first).</li>
+<li>On success, reports the frame's serial, button, and counter fields (the
+  key is <em>assumed</em> correct for this decode — it isn't independently
+  verified against a known‑good counter sequence):
+  <code>text
+  [+] KeeLoq frame: serial=0x1234567 button=3 counter=42 (key assumed correct)</code></li>
+<li>On failure:
+  <code>text
+  No KeeLoq-shaped framing found in the last capture (header/PWM timing may need tuning - see keeloq.h notes)</code></li>
+</ul>
+<h2 id="building-and-transmitting-a-frame">Building and transmitting a frame</h2>
+<pre><code class="language-text">&gt; keeloqtx &lt;key_hex&gt; &lt;serial_hex&gt; &lt;button 0-15&gt; &lt;counter&gt;
+</code></pre>
+<p>Builds a KeeLoq hopping‑code frame from the given key, serial, button, and
+counter value, and transmits it.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p>If <code>keeloqtest</code> consistently fails to find framing on a capture you expect
+to be KeeLoq, the issue is most likely header/PWM timing tuning rather than
+the cipher itself — see the notes in <code>keeloq.h</code>.</p>
+</section>
+<section class="page" id="Dual-Module-and-RollJam">
+<h1 id="dualmodule-setup-rolljam">Dual‑Module Setup &amp; RollJam</h1>
+<h2 id="dualmodule-module-a-module-b-support">Dual‑module ("Module A / Module B") support</h2>
+<p>A second CC1101 is optional. With one wired up, you can assign TX and RX to
+different physical modules — which is required for RollJam (below) and can
+be useful any time you want to transmit and receive simultaneously on
+different settings.</p>
+<h3 id="wiring-module-b">Wiring Module B</h3>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th style="text-align: center;">GPIO</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SS / CS</td>
+<td style="text-align: center;">25</td>
+</tr>
+<tr>
+<td>GDO0</td>
+<td style="text-align: center;">26</td>
+</tr>
+<tr>
+<td>GDO2</td>
+<td style="text-align: center;">27</td>
+</tr>
+</tbody>
+</table>
+<p>SCK/MISO/MOSI are shared with Module A (18/23/19).</p>
+<h3 id="detection-is-manual-by-design">Detection is manual, by design</h3>
+<p>Module B is <strong>never probed automatically at boot</strong>. Some of its pins double
+as PSRAM pins on certain ESP32‑WROVER boards, so probing them
+unconditionally isn't safe on every board. Detection only runs when you
+explicitly ask for it:</p>
+<pre><code class="language-text">&gt; modules
+</code></pre>
+<p>This:
+1. Actively probes for Module B.
+2. <strong>Re‑initializes Module A</strong> (<code>rf.init()</code>) afterward, to guarantee it comes
+   back in a clean state regardless of how Module B's probe affected the
+   shared SPI bus's CS/MISO tri‑state behavior. This <strong>resets
+   frequency/modulation/etc. back to defaults</strong> — re‑apply your preset after
+   running <code>modules</code>.
+3. Reports the result:
+   <code>text
+   Module B: present | TX: Module A | RX: Module A</code></p>
+<p>If you just want to read the <strong>current</strong> cached state without touching
+hardware (e.g. for a dashboard that polls on load), use <code>modstatus</code> instead
+— it never probes and never resets Module A.</p>
+<h3 id="assigning-txrx-modules">Assigning TX/RX modules</h3>
+<pre><code class="language-text">&gt; txmodule a|b
+&gt; rxmodule a|b
+</code></pre>
+<p>Both require Module B to have been detected first (<code>modules</code>), and persist
+the assignment to EEPROM via <code>radioMgr.saveToEEPROM()</code>.</p>
+<h2 id="rolljam-experimental">RollJam (experimental)</h2>
+<blockquote>
+<p><strong>This feature is explicitly marked experimental and untested against
+real two‑module hardware in the source.</strong> Jam‑burst rate vs.
+capture‑idle‑gap detection timing will likely need tuning once validated
+on actual hardware. Treat it as a starting point, not a finished feature.</p>
+</blockquote>
+<p>RollJam captures two consecutive presses of a remote while jamming the
+receiver, so each press can potentially be replayed later. It requires:</p>
+<ul>
+<li>Module B detected (<code>modules</code> has been run and reports it present), and</li>
+<li>RX and TX assigned to <strong>different</strong> modules (<code>rxmodule</code>/<code>txmodule</code>).</li>
+</ul>
+<pre><code class="language-text">&gt; rolljam start
+[RollJam] EXPERIMENTAL - untested on real two-module hardware, timing may need tuning.
+[RollJam] Press the remote now for slot 1...
+[RollJam] Slot 1 captured: 143 pulses
+[RollJam] Press the remote now for slot 2...
+[RollJam] Slot 2 captured: 140 pulses
+[RollJam] Done. 'rolljam replay1' opens now (unused code) - slot 2 stays banked for later.
+</code></pre>
+<p>Each slot is capped at <code>ROLLJAM_SLOT_MAX</code> pulses and has a 15‑second window
+to capture a press before giving up.</p>
+<p>Replay either captured slot:</p>
+<pre><code class="language-text">&gt; rolljam replay1
+&gt; rolljam replay2
+</code></pre>
+<p>Abort an in‑progress sequence:</p>
+<pre><code class="language-text">&gt; rolljam stop
+</code></pre>
+<h3 id="notes">Notes</h3>
+<ul>
+<li>The RX module always captures and the TX module always jams — this is
+  <strong>fixed</strong> for the duration of the sequence regardless of your general
+  <code>txmodule</code>/<code>rxmodule</code> preference, then restored afterward.</li>
+<li>If no signal is captured in a slot, the sequence aborts:
+  <code>text
+  [RollJam] No signal captured for this slot - aborting.</code></li>
+<li>RollJam interacts with real‑world access‑control systems (gates, garage
+  doors, vehicles). See
+  <a href="#Legal-and-Responsible-Use">Legal &amp; Responsible Use</a> before testing this
+  against anything you don't own or aren't explicitly authorized to test —
+  and be aware that jamming is independently regulated/illegal in most
+  jurisdictions regardless of what it's paired with.</li>
+</ul>
+</section>
+<section class="page" id="Troubleshooting">
+<h1 id="troubleshooting">Troubleshooting</h1>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause / fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CC1101 err</code> at boot</td>
+<td>Check SPI wiring (SCK 18 / MISO 23 / MOSI 19 / SS 5) and that the module has stable power. Reported immediately after <code>ELECHOUSE_cc1101.Init()</code> in <code>CommandHandler::init()</code>.</td>
+</tr>
+<tr>
+<td><code>recraw s &lt;dBm&gt;</code> seems to hang / never captures</td>
+<td>An unreachable RSSI threshold will silently time out. Try <code>recraw s</code> with no threshold first to confirm capture works at all, then add a threshold once you know a reachable RSSI level.</td>
+</tr>
+<tr>
+<td>Frequency/modulation/settings reset unexpectedly</td>
+<td>Running <code>modules</code> re‑initializes Module A as a side effect of checking for Module B, which resets RF settings to defaults. Re‑apply your preset/frequency after running <code>modules</code>. Use <code>modstatus</code> instead if you only need to read cached module/role state.</td>
+</tr>
+<tr>
+<td><code>txmodule</code>/<code>rxmodule</code> says "nothing to choose"</td>
+<td>Module B hasn't been detected yet — run <code>modules</code> first.</td>
+</tr>
+<tr>
+<td>RollJam aborts with "No signal captured for this slot"</td>
+<td>The 15‑second capture window closed before the remote was pressed, or Module B/RX wiring needs attention. Also confirm RX and TX are assigned to different modules (RollJam requires this).</td>
+</tr>
+<tr>
+<td><code>subimport</code> prints "Usage: subimport <sub-text>..." for a capture you know has data</td>
+<td>Serial <code>subimport</code> is sized for short blobs — use the web UI for large <code>.sub</code> imports.</td>
+</tr>
+<tr>
+<td><code>Unknown: &lt;command&gt;</code></td>
+<td>Check spelling/case against the <a href="#CLI-Command-Reference">CLI Command Reference</a> — command names are case‑sensitive.</td>
+</tr>
+<tr>
+<td><code>tx</code>/<code>add</code> says "Invalid hex"</td>
+<td>The hex string must have even length and be ≤120 characters (≤60 bytes).</td>
+</tr>
+<tr>
+<td>Device won't respond to new serial input while a <code>brute</code> sweep is running</td>
+<td>Send any character on serial, or issue <code>stop</code>, to break out of the sweep — it checks for a stop condition between codes.</td>
+</tr>
+<tr>
+<td>Web UI shows stale module/role info</td>
+<td>If the dashboard polls module status automatically, make sure it's calling <code>modstatus</code> (read‑only) and not <code>modules</code> (which actively probes and resets Module A) — this is a backend/wiring consideration, not something you toggle from the CLI.</td>
+</tr>
+</tbody>
+</table>
+<p>If you run into something not covered here, please open an issue with the
+command sequence that reproduces it and the serial log output.</p>
+</section>
+<section class="page" id="Legal-and-Responsible-Use">
+<h1 id="legal-responsible-use">Legal &amp; Responsible Use</h1>
+<p>Sub Rabbit MK.II can:</p>
+<ul>
+<li>Transmit on sub‑GHz ISM bands (<code>tx</code>, <code>playsig</code>, <code>playraw</code>, <code>rolljam
+  replay*</code>, <code>keeloqtx</code>, …)</li>
+<li>Jam RF (<code>jam</code>, and as part of <code>rolljam start</code>)</li>
+<li>Sweep the entire code space of several fixed‑code garage/gate remote
+  protocols (<code>brute</code>)</li>
+<li>Capture, decode, and replay signals from third‑party devices</li>
+</ul>
+<p>In most countries:</p>
+<ul>
+<li><strong>Radio transmission</strong> is regulated by frequency, power level, and
+  equipment certification. Confirm your local rules (e.g. ISM band limits)
+  before transmitting anything.</li>
+<li><strong>Jamming</strong> any radio spectrum is independently illegal in most
+  jurisdictions, regardless of what it's paired with or why.</li>
+<li><strong>Accessing, capturing, replaying, or interfering with RF systems you
+  don't own</strong> (garage doors, gates, vehicle remotes, alarms, etc.) without
+  the owner's explicit permission is illegal in most jurisdictions and can
+  create real safety risks (e.g. interfering with access control or alarm
+  systems).</li>
+</ul>
+<p><strong>Only use this project on equipment you own, or with explicit, documented
+authorization from the owner</strong> — for example, your own remotes/receivers,
+or an engagement you've been contracted/authorized to test. This project is
+intended for security research, interoperability testing, and education.</p>
+<p>You are solely responsible for complying with the laws and regulations that
+apply to you. The authors/contributors of this project are not responsible
+for misuse.</p>
+</section>
+
+  </main>
+</div>
+<script>
+(function () {
+  var links = document.querySelectorAll('.nav-link');
+  var pages = document.querySelectorAll('.page');
+  var sidebar = document.getElementById('sidebar');
+  var topbarTitle = document.getElementById('topbarTitle');
+
+  function showPage(id, pushHash) {
+    var found = false;
+    pages.forEach(function (p) {
+      var match = p.id === id;
+      p.classList.toggle('active', match);
+      if (match) found = true;
+    });
+    if (!found && pages.length) {
+      pages[0].classList.add('active');
+      id = pages[0].id;
+    }
+    links.forEach(function (l) {
+      l.classList.toggle('active', l.dataset.target === id);
+      if (l.dataset.target === id) topbarTitle.textContent = l.textContent;
+    });
+    sidebar.classList.remove('open');
+    window.scrollTo(0, 0);
+    if (pushHash) history.replaceState(null, '', '#' + id);
+  }
+
+  links.forEach(function (l) {
+    l.addEventListener('click', function (e) {
+      e.preventDefault();
+      showPage(l.dataset.target, true);
+    });
+  });
+
+  document.getElementById('menuToggle').addEventListener('click', function () {
+    sidebar.classList.toggle('open');
+  });
+
+  window.addEventListener('hashchange', function () {
+    var id = location.hash.replace('#', '');
+    if (id) showPage(id, false);
+  });
+
+  var startId = location.hash ? location.hash.replace('#', '') : (pages[0] && pages[0].id);
+  showPage(startId, false);
+})();
+</script>
+</body>
+</html>
