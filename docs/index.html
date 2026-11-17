@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SubRabbit — sub-1 GHz Swiss Army knife</title>
+<meta name="description" content="SubRabbit — an ESP32 + CC1101 tool for the sub-1 GHz ISM bands: sniff, record, and replay your own RF devices.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<style>
+  :root{
+    --bg:#101010; --panel:#141414; --grid:#1e1e1e; --line:#2a2a2a;
+    --text:#f2f2f2; --dim:#808080; --dim2:#4d4d4d;
+    --accent:#e6e6e6; --accent-dim:rgba(230,230,230,.12);
+    --warn:#ff5a3c;
+  }
+  *{ box-sizing:border-box; }
+  html{ background:var(--bg); color-scheme:dark; scroll-padding-top:env(safe-area-inset-top,0px); }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:"JetBrains Mono", ui-monospace, "Courier New", monospace;
+    -webkit-font-smoothing:antialiased;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  a{ color:inherit; }
+  .wrap{ max-width:900px; margin:0 auto; padding:0 20px; }
+
+  .hero{ padding:56px 0 40px; border-bottom:1px solid var(--line); }
+  .wordmark{ font-size:clamp(40px,8.5vw,84px); font-weight:800; line-height:.95; letter-spacing:-.01em; margin:0 0 14px; color:var(--text); }
+  .wordmark span{ color:var(--accent); }
+  h1{ font-size:14px; font-weight:700; color:var(--accent); margin:0 0 18px; letter-spacing:.08em; text-transform:uppercase; }
+  .pitch{ font-size:17px; line-height:1.55; max-width:62ch; color:var(--text); margin:0 0 26px; }
+  .pitch b{ color:var(--text); font-weight:700; }
+
+  .viewer{ aspect-ratio:16/9; max-width:620px; border:1px solid var(--line); background:var(--panel); position:relative; overflow:hidden; margin:22px 0; }
+  .viewer canvas{ display:block; }
+  .viewer .hint{ position:absolute; right:10px; bottom:8px; font-size:11px; color:var(--dim2); background:rgba(0,0,0,.5); padding:3px 8px; letter-spacing:.03em; pointer-events:none; }
+  .viewer .loading{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--dim2); letter-spacing:.03em; pointer-events:none; }
+
+  .cta{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:30px; }
+  .btn{ display:inline-block; padding:10px 16px; font:inherit; font-size:13px; font-weight:700; text-decoration:none; border:1px solid var(--line); letter-spacing:.03em; cursor:pointer; }
+  .btn.primary{ background:var(--accent); color:#111; border-color:var(--accent); }
+  .btn.ghost{ background:transparent; color:var(--text); }
+  .btn.ghost:hover{ border-color:var(--accent); color:var(--accent); }
+
+  .stats{ margin-top:26px; padding-top:18px; border-top:1px solid var(--line); }
+  .stats-row{ display:flex; gap:28px; }
+  .stats-row + .stats-row{ margin-top:12px; }
+  .stats .stat{ display:flex; align-items:baseline; gap:7px; }
+  .stats .v{ font-size:17px; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums; }
+  .stats .l{ font-size:12px; color:var(--dim2); letter-spacing:.03em; }
+
+  .modes{ display:flex; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--bg); z-index:4; overflow-x:auto; }
+  .modes a{ padding:12px 18px; font-size:12.5px; font-weight:700; letter-spacing:.04em; text-decoration:none; color:var(--dim); border-right:1px solid var(--line); white-space:nowrap; }
+  .modes a:hover{ color:var(--text); }
+  .modes a.on{ color:var(--accent); box-shadow:inset 0 -2px 0 var(--accent); }
+
+  section.mode{ padding:44px 0; border-bottom:1px solid var(--line); scroll-margin-top:56px; }
+  section.mode .tag{ font-size:12px; color:var(--dim2); margin-bottom:6px; }
+  section.mode .h2-row{ display:flex; align-items:center; gap:12px; margin:0 0 14px; }
+  section.mode h2{ font-size:22px; margin:0; font-weight:700; }
+  section.mode p{ font-size:14.5px; line-height:1.7; color:var(--dim); max-width:64ch; margin:0 0 20px; }
+  section.mode p b{ color:var(--text); font-weight:600; }
+  section.mode p code{ font-size:13px; background:var(--panel); border:1px solid var(--line); padding:1px 6px; color:var(--accent); }
+  .specs{ border-top:1px solid var(--line); }
+  .specs div{ display:flex; gap:18px; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px; }
+  .specs dt{ flex:0 0 120px; color:var(--dim2); font-weight:700; }
+  .specs dd{ margin:0; color:var(--text); }
+
+  .steps{ border-top:1px solid var(--line); counter-reset:step; }
+  .steps > div{ display:flex; gap:16px; padding:14px 0; border-bottom:1px solid var(--line); }
+  .steps > div::before{ counter-increment:step; content:counter(step); flex:0 0 22px; height:22px; text-align:center; line-height:20px; font-size:12px; font-weight:700; color:var(--accent); border:1px solid var(--line); }
+  .steps h3{ margin:0 0 3px; font-size:14px; font-weight:700; }
+  .steps p{ margin:0; font-size:13.5px; line-height:1.6; color:var(--dim); }
+  .steps p code{ font-size:12.5px; background:var(--panel); border:1px solid var(--line); padding:1px 6px; color:var(--accent); }
+  .steps a{ color:var(--accent); text-decoration:underline; text-underline-offset:3px; }
+
+  .warn{ padding:40px 0; border-bottom:1px solid var(--line); }
+  .warn .box{ border:1px solid var(--warn); padding:18px 20px; }
+  .warn .box .hd{ color:var(--warn); font-weight:700; font-size:13px; margin-bottom:10px; }
+  .warn .box p{ margin:0 0 10px; font-size:13.5px; line-height:1.7; color:var(--dim); }
+  .warn .box p:last-child{ margin-bottom:0; }
+  .warn .box b{ color:var(--text); font-weight:700; }
+
+  footer{ padding:40px 0 60px; }
+  footer .cmd{ background:var(--panel); border:1px solid var(--line); padding:16px 18px; font-size:13px; line-height:1.9; margin-bottom:24px; overflow-x:auto; }
+  footer .cmd .c{ color:var(--dim2); }
+  footer .cmd .p{ color:var(--accent); }
+  footer .meta{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:12px; color:var(--dim2); }
+  footer .meta a{ color:var(--dim2); text-decoration:underline; text-underline-offset:3px; }
+  footer .meta a:hover{ color:var(--accent); }
+  footer .meta .release .ok{ color:var(--accent); }
+
+  @media (max-width:760px){ .viewer{ max-width:100%; aspect-ratio:4/3; } .stats{ gap:12px; } }
+  @media (max-width:560px){ .hero{ padding:40px 0 30px; } .pitch{ font-size:15.5px; } .specs dt{ flex:0 0 96px; } }
+</style>
+</head>
+<body>
+
+<main class="wrap">
+
+  <section class="hero">
+    <div class="wordmark">Sub<span>Rabbit</span></div>
+    <h1>sub-1 ghz toolkit</h1>
+    <p class="pitch">
+      An <b>ESP32 + CC1101</b> sub-1 GHz toolkit: <b>sniff</b> and <b>analyze</b> traffic,
+      <b>capture/replay</b> your own remotes, across <b>2-FSK / GFSK / ASK-OOK / 4-FSK / MSK</b>.
+    </p>
+
+    <div class="viewer">
+      <div id="pcbViewer" style="width:100%; height:100%;"></div>
+      <div class="loading" id="pcbLoading">loading model…</div>
+      <div class="hint">drag to rotate</div>
+    </div>
+
+    <div class="cta">
+      <a class="btn primary" href="https://wrait8.github.io/WFlasher/">FLASH FIRMWARE</a>
+      <a class="btn ghost" href="wiki/">WIKI</a>
+      <a class="btn ghost" href="https://github.com/wrait8/SubRabbit">VIEW SOURCE</a>
+    </div>
+
+    <div class="stats">
+      <div class="stats-row">
+        <div class="stat"><span class="v" id="starsCount">—</span><span class="l">stars</span></div>
+        <div class="stat"><span class="v" id="forksCount">—</span><span class="l">forks</span></div>
+        <div class="stat"><span class="v" id="latestTag">—</span><span class="l">latest</span></div>
+      </div>
+      <div class="stats-row"><div class="stat"><span class="v">MIT</span><span class="l">license</span></div></div>
+    </div>
+  </section>
+
+  <nav class="modes" id="modeNav">
+    <a href="#sniff" class="on">SNIFF</a>
+    <a href="#capture">CAPTURE</a>
+    <a href="#radio">RADIO</a>
+    <a href="#jam">JAM · BRUTE</a>
+    <a href="#flash">FLASH</a>
+    <a href="#hardware">HARDWARE</a>
+  </nav>
+
+  <section class="mode" id="sniff">
+    <div class="tag">firmware / sniff</div>
+    <div class="h2-row"><svg width="22" height="22" viewBox="0 0 20 20" fill="var(--accent)"><rect x="8" y="0" width="3" height="3"/><rect x="4" y="4" width="3" height="3"/><rect x="12" y="4" width="3" height="3"/><rect x="0" y="8" width="3" height="3"/><rect x="16" y="8" width="3" height="3"/><rect x="8" y="8" width="3" height="3"/><rect x="8" y="12" width="3" height="3"/><rect x="8" y="16" width="3" height="3"/></svg><h2>Packet sniffer &amp; frequency analyzer</h2></div>
+    <p>
+      Point it at a channel and watch RF packets come in with live <b>RSSI</b> and link-quality
+      readout, or sweep a band to find which channels actually have traffic on them before you
+      commit to listening on one. Both run straight from the serial console — no companion app
+      needed.
+    </p>
+    <dl class="specs">
+      <div><dt>sniffer</dt><dd>live packet log with RSSI and link quality</dd></div>
+      <div><dt>analyzer</dt><dd>channel-activity sweep across the sub-1 GHz range</dd></div>
+      <div><dt>console</dt><dd>plain serial commands — USB, or the CLI/web tools below</dd></div>
+    </dl>
+  </section>
+
+  <section class="mode" id="capture">
+    <div class="tag">firmware / capture</div>
+    <div class="h2-row"><svg width="22" height="22" viewBox="0 0 20 20" fill="var(--accent)"><rect x="4" y="4" width="3" height="3"/><rect x="4" y="8" width="3" height="3"/><rect x="4" y="12" width="3" height="3"/><rect x="8" y="0" width="3" height="3"/><rect x="8" y="16" width="3" height="3"/><rect x="12" y="4" width="3" height="3"/><rect x="12" y="12" width="3" height="3"/><rect x="16" y="8" width="3" height="3"/></svg><h2>Record &amp; replay</h2></div>
+    <p>
+      Two capture paths, depending on what you're working with. <code>recraw</code> /
+      <code>playraw</code> grab the raw RF samples bit for bit — useful while you're still
+      figuring out what a signal is. Once you know a transmitter sends a simple fixed code (most
+      remotes, many sensors), <code>recsig</code> / <code>playsig</code> capture and reproduce
+      just that code.
+    </p>
+    <dl class="specs">
+      <div><dt>raw</dt><dd><code>recraw</code> / <code>playraw</code> — full-fidelity sample capture</dd></div>
+      <div><dt>fixed-code</dt><dd><code>recsig</code> / <code>playsig</code> — captured code, replayed on demand</dd></div>
+      <div><dt>use on</dt><dd>your own remotes, sensors and test gear</dd></div>
+    </dl>
+  </section>
+
+  <section class="mode" id="radio">
+    <div class="tag">firmware / radio</div>
+    <div class="h2-row"><svg width="22" height="22" viewBox="0 0 20 20" fill="var(--accent)"><rect x="0" y="16" width="3" height="3"/><rect x="4" y="12" width="3" height="3"/><rect x="8" y="8" width="3" height="3"/><rect x="12" y="4" width="3" height="3"/><rect x="16" y="0" width="3" height="3"/><rect x="0" y="8" width="3" height="3"/><rect x="0" y="12" width="3" height="3"/></svg><h2>Radio configuration</h2></div>
+    <p>
+      The CC1101's radio parameters are exposed directly: pick the modulation that matches what
+      you're working with and tune frequency, data rate and deviation to match.
+    </p>
+    <dl class="specs">
+      <div><dt>modulation</dt><dd>2-FSK · GFSK · ASK/OOK · 4-FSK · MSK</dd></div>
+      <div><dt>range</dt><dd>sub-1 GHz ISM — whatever the antenna and local allocation allow</dd></div>
+      <div><dt>tuned by</dt><dd>frequency, data rate, deviation — set per session</dd></div>
+    </dl>
+  </section>
+
+  <section class="mode" id="jam">
+    <div class="tag">firmware / jam · brute — restricted use</div>
+    <div class="h2-row"><svg width="22" height="22" viewBox="0 0 20 20" fill="var(--accent)"><rect x="12" y="0" width="3" height="3"/><rect x="8" y="4" width="3" height="3"/><rect x="4" y="8" width="3" height="3"/><rect x="8" y="8" width="3" height="3"/><rect x="12" y="8" width="3" height="3"/><rect x="4" y="12" width="3" height="3"/><rect x="8" y="12" width="3" height="3"/><rect x="4" y="16" width="3" height="3"/></svg><h2>Jamming &amp; brute-force</h2></div>
+    <p>
+      <code>jam</code> transmits continuously on a channel; <code>brute</code> steps through
+      timing/code space against a receiver. Both are <b>active, transmitting</b> modes — unlike
+      everything above, they put RF energy on air deliberately and can affect other people's
+      equipment. Read the box below before you use either one.
+    </p>
+    <dl class="specs">
+      <div><dt>jam</dt><dd>continuous transmission on a chosen channel</dd></div>
+      <div><dt>brute</dt><dd>timing-based code brute-force against a receiver</dd></div>
+      <div><dt>status</dt><dd>transmit modes — see the notice below before use</dd></div>
+    </dl>
+  </section>
+
+  <section class="mode" id="flash">
+    <div class="tag">get it running</div>
+    <div class="h2-row"><svg width="22" height="22" viewBox="0 0 20 20" fill="var(--accent)"><rect x="4" y="0" width="3" height="3"/><rect x="8" y="0" width="3" height="3"/><rect x="0" y="4" width="3" height="3"/><rect x="4" y="4" width="3" height="3"/><rect x="8" y="8" width="3" height="3"/><rect x="12" y="8" width="3" height="3"/><rect x="8" y="12" width="3" height="3"/><rect x="4" y="16" width="3" height="3"/><rect x="8" y="16" width="3" height="3"/></svg><h2>Flash the firmware</h2></div>
+    <p>Three ways to get SubRabbit onto the board, from quickest to most hands-on.</p>
+    <div class="steps">
+      <div>
+        <h3>Web flasher — no install</h3>
+        <p>Open <a href="https://wrait8.github.io/WFlasher/">wrait8.github.io/WFlasher</a> in Chrome
+        or Edge, plug the board in over USB, pick the firmware and flash straight from the page
+        via Web Serial.</p>
+      </div>
+      <div>
+        <h3>CLI tool</h3>
+        <p>Run <code>Serial.py</code> from the repo's <code>/Serial</code> folder for an
+        interactive or scripted flash from the command line.</p>
+      </div>
+      <div>
+        <h3>Source + Arduino IDE</h3>
+        <p>Clone the repo, open <code>SubRabbit.ino</code> in the Arduino IDE, and upload it
+        yourself — the route to take if you're modifying the firmware.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="mode" id="hardware">
+    <div class="tag">hardware</div>
+    <div class="h2-row"><svg width="22" height="22" viewBox="0 0 20 20" fill="var(--accent)"><rect x="4" y="4" width="3" height="3"/><rect x="8" y="4" width="3" height="3"/><rect x="12" y="4" width="3" height="3"/><rect x="4" y="8" width="3" height="3"/><rect x="12" y="8" width="3" height="3"/><rect x="4" y="12" width="3" height="3"/><rect x="8" y="12" width="3" height="3"/><rect x="12" y="12" width="3" height="3"/><rect x="8" y="0" width="3" height="3"/><rect x="8" y="16" width="3" height="3"/><rect x="0" y="8" width="3" height="3"/><rect x="16" y="8" width="3" height="3"/></svg><h2>PCB &amp; breadboard</h2></div>
+    <p>
+      Build it on the project's own PCB, or wire an ESP32 dev board to a CC1101 module on a
+      breadboard — both are documented in the repo.
+    </p>
+    <dl class="specs">
+      <div><dt>PCB</dt><dd>ESP32 + CC1101, USB, SMA antenna — schematics/Gerber/BOM in <code>/PCB</code></dd></div>
+      <div><dt>breadboard</dt><dd>ESP32 dev board + CC1101 breakout — wiring diagram in the wiki</dd></div>
+    </dl>
+  </section>
+
+  <section class="warn">
+    <div class="box">
+      <div class="hd">read before you transmit</div>
+      <p><b>Most of this firmware receives only</b> — sniffing and capture don't put anything on
+      air. <code>jam</code> and <code>brute</code> are different: they <b>transmit</b>, and radio
+      transmission is regulated by law almost everywhere, not just by etiquette.</p>
+      <p><b>Jamming</b> — deliberately interfering with radio spectrum — is illegal in most
+      countries, full stop, including on license-free ISM bands, regardless of your intent. There
+      isn't a "responsible use" version of continuous jamming against anything other than a
+      shielded test setup you own.</p>
+      <p><b>Brute-forcing</b> a code against a receiver you don't own — a gate, a garage door, a
+      car, an alarm — is unauthorized access in most jurisdictions, separate from any radio-law
+      violation. Use <code>jam</code> and <code>brute</code> only inside a shielded enclosure or
+      against your own equipment that you're explicitly allowed to test.</p>
+      <p>Everything else — sniffing, capture, replay — still only ever acts on your own devices and
+      remotes, or equipment you're otherwise authorized to test. Check your country's radio
+      regulations (FCC Part 15 in the US, ETSI in the EU, or your local equivalent) before you
+      transmit anything.</p>
+    </div>
+  </section>
+
+  <footer>
+    <div class="cmd">
+      <span class="c">$</span> git clone https://github.com/wrait8/SubRabbit.git<br>
+      <span class="c">$</span> cd SubRabbit &amp;&amp; <span class="p">pio</span> run --target upload<br>
+      <span class="c">#</span> needs an ESP32 + CC1101, wired per /PCB or the wiki
+    </div>
+    <div class="meta">
+      <span>MIT licensed</span>
+      <span class="release" id="releaseMeta">latest release: <span class="ok">—</span></span>
+      <a href="wiki/">wiki</a>
+      <a href="https://github.com/wrait8/SubRabbit">github.com/wrait8/SubRabbit</a>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  var sections = ["sniff","capture","radio","jam","flash","hardware"].map(function(id){ return document.getElementById(id); });
+  var links = document.querySelectorAll(".modes a");
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      links.forEach(function(a){ a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id); });
+    });
+  }, { rootMargin: "-40% 0px -55% 0px" });
+  sections.forEach(function(s){ if (s) io.observe(s); });
+
+  fetch("https://api.github.com/repos/wrait8/SubRabbit/releases/latest")
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(rel){
+      var footEl = document.getElementById("releaseMeta");
+      var tagEl = document.getElementById("latestTag");
+      var tag = rel && rel.tag_name ? rel.tag_name : null;
+      if (footEl) footEl.innerHTML = tag
+        ? 'latest release: <span class="ok">' + tag + '</span>'
+        : '<a href="https://github.com/wrait8/SubRabbit/releases">releases</a>';
+      if (tagEl) tagEl.textContent = tag || "—";
+    })
+    .catch(function(){
+      var footEl = document.getElementById("releaseMeta");
+      if (footEl) footEl.innerHTML = '<a href="https://github.com/wrait8/SubRabbit/releases">releases</a>';
+    });
+
+  fetch("https://api.github.com/repos/wrait8/SubRabbit")
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(repo){
+      if (!repo) return;
+      var starsEl = document.getElementById("starsCount");
+      var forksEl = document.getElementById("forksCount");
+      if (starsEl && typeof repo.stargazers_count === "number") starsEl.textContent = repo.stargazers_count;
+      if (forksEl && typeof repo.forks_count === "number") forksEl.textContent = repo.forks_count;
+    })
+    .catch(function(){});
+})();
+</script>
+
+<script type="module">
+(function(){
+  "use strict";
+  var container = document.getElementById("pcbViewer");
+  var loadingEl = document.getElementById("pcbLoading");
+  if (!container) return;
+
+  import("three").then(function(THREE){
+    import("three/addons/controls/OrbitControls.js").then(function(OC){
+      import("three/addons/loaders/GLTFLoader.js").then(function(GL){
+        start(THREE, OC.OrbitControls, GL.GLTFLoader);
+      });
+    });
+  });
+
+  function start(THREE, OrbitControls, GLTFLoader){
+    var width = container.clientWidth, height = container.clientHeight || 300;
+    var isMobile = window.innerWidth <= 760;
+
+    var scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x101010);
+
+    var camera = new THREE.PerspectiveCamera(25, width / height, 0.1, 1000);
+    camera.position.set(0, 8.8, 0.1);
+    camera.lookAt(0, 2, 0);
+
+    var renderer = new THREE.WebGLRenderer({ antialias: !isMobile, powerPreference: isMobile ? "low-power" : "high-performance" });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.6 : 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    container.appendChild(renderer.domElement);
+
+    var controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 1.2;
+    controls.minDistance = 2;
+    controls.maxDistance = 20;
+    controls.target.set(0, 2, 0);
+
+    scene.add(new THREE.AmbientLight(0x808080, 0.55));
+    var key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(4, 8, 6); scene.add(key);
+    var fill = new THREE.DirectionalLight(0xcfcfcf, 0.6); fill.position.set(-4, 3, -3); scene.add(fill);
+    var rim = new THREE.DirectionalLight(0xaaaaaa, 0.5); rim.position.set(-3, 1, -6); scene.add(rim);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x101010, 0.3));
+
+    var loader = new GLTFLoader();
+    loader.load(
+      "Model/PCB.glb",
+      function(gltf){
+        if (loadingEl) loadingEl.remove();
+        var model = gltf.scene;
+        var box = new THREE.Box3().setFromObject(model);
+        var size = box.getSize(new THREE.Vector3());
+        var maxDim = Math.max(size.x, size.y, size.z);
+        var scale = 5.0 / maxDim;
+        model.scale.set(scale, scale, scale);
+        model.rotation.x = -Math.PI / 2;
+        var newBox = new THREE.Box3().setFromObject(model);
+        var c = newBox.getCenter(new THREE.Vector3());
+        model.position.x = -c.x; model.position.z = -c.z; model.position.y = -newBox.min.y + 0.5;
+        model.traverse(function(node){
+          if (node.isMesh && node.material){
+            node.material.roughness = Math.min(node.material.roughness || 0.5, 0.7);
+            node.material.metalness = Math.min(node.material.metalness || 0.3, 0.6);
+          }
+        });
+        scene.add(model);
+      },
+      function(xhr){
+        if (loadingEl && xhr.total > 0) loadingEl.textContent = "loading model… " + Math.min(Math.round((xhr.loaded / xhr.total) * 100), 99) + "%";
+      },
+      function(){
+        if (loadingEl) loadingEl.remove();
+        var group = new THREE.Group();
+        var boardMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5, metalness: 0.4 });
+        var board = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.12, 3.8), boardMat);
+        board.position.set(0, 1.9, 0); group.add(board);
+        var usbMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.2, metalness: 0.9 });
+        var usb = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.15, 0.5), usbMat);
+        usb.position.set(0, 0.08, 0); group.add(usb);
+        var chipMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.3, metalness: 0.7 });
+        var chip = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.06, 0.8), chipMat);
+        chip.position.set(0, 2.0, 0.5); group.add(chip);
+        var antMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.6, roughness: 0.3 });
+        var ant = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.2, 6), antMat);
+        ant.position.set(0, 4.7, 0); group.add(ant);
+        group.position.y = 0.5;
+        scene.add(group);
+      }
+    );
+
+    function resize(){
+      var w = container.clientWidth, h = container.clientHeight || 300;
+      camera.aspect = w / h; camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    }
+    window.addEventListener("resize", resize);
+
+    function animate(){ requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+    animate();
+
+    renderer.domElement.addEventListener("pointerdown", function(){ controls.autoRotate = false; });
+    renderer.domElement.addEventListener("pointerup", function(){ setTimeout(function(){ controls.autoRotate = true; }, 3000); });
+  }
+})();
+</script>
+</body>
+</html>
